@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Devcade;
+using System;
+using Whitespace.Util;
 
 namespace Whitespace
 {
@@ -9,7 +11,9 @@ namespace Whitespace
 	{
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
-		
+
+		private Rectangle _something;
+
 		
 		public WhitespaceGame()
 		{
@@ -35,6 +39,7 @@ namespace Whitespace
 			#endregion
 			////
 			
+
 
 			////
 			base.Initialize();
@@ -62,8 +67,12 @@ namespace Whitespace
 				Exit();
 			}
 			////
-			
 
+
+			_something = new Rectangle(
+				100, 100,
+				(int)((Math.Sin(gameTime.TotalGameTime.TotalSeconds*2)+1)*100)+50,
+				(int)((Math.Sin(gameTime.TotalGameTime.TotalSeconds*2)+1)*100)+50);
 
 
 			////
@@ -76,12 +85,28 @@ namespace Whitespace
 		/// <param name="gameTime">This is the gameTime object you can use to get the time since last frame.</param>
 		protected override void Draw(GameTime gameTime)
 		{
-			GraphicsDevice.Clear(Color.Black);
+			GraphicsDevice.Clear(new Color(new Vector3(0.3f)));
+			////
 			_spriteBatch.Begin();
 			
 			
 			_spriteBatch.End();
 
+
+			ShapeBatch.Begin(GraphicsDevice);
+
+			ShapeBatch.BoxOutline(_something, Color.Red);
+
+			ShapeBatch.Triangle(
+				new Vector2(300),
+				(float)((Math.Sin(gameTime.TotalGameTime.TotalSeconds*2)+1)*100)+50,
+				Color.Blue);
+
+			
+
+			ShapeBatch.End();
+
+			////
 			base.Draw(gameTime);
 		}
 	}
