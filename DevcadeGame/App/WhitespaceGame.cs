@@ -12,6 +12,7 @@ using MonoGame.Extended.Particles.Profiles;
 using MonoGame.Extended.TextureAtlases;
 using MonoGame.Extended;
 using System.Collections.Generic;
+using MonoGame.Extended.ViewportAdapters;
 
 namespace Whitespace.App
 {
@@ -20,8 +21,9 @@ namespace Whitespace.App
         /// <summary>
         /// THE unit
         /// </summary>
-        public static float u;
+        //public static float u;
 
+        private OrthographicCamera _cam;
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -47,6 +49,7 @@ namespace Whitespace.App
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = false;
+            Window.AllowUserResizing = true;
         }
 
         protected override void Initialize()
@@ -66,13 +69,16 @@ namespace Whitespace.App
             #endregion
             ////
 
+
+
             _resolution = new Vector2(
                 _graphics.PreferredBackBufferWidth,
                 _graphics.PreferredBackBufferHeight);
 
             //21 by 49 so get the factor of 21 that this screen's width is
-            u = _graphics.PreferredBackBufferWidth / 21f;
+            //u = _graphics.PreferredBackBufferWidth / 21f;
 
+            _cam = new OrthographicCamera(new BoxingViewportAdapter(Window, GraphicsDevice, 21, 49));
 
             ////
             base.Initialize();
@@ -105,7 +111,8 @@ namespace Whitespace.App
                 Texture = _squareTexture,
                 Collider = new CircleF(new Vector2(100), 50),
                 Tint = Color.Red,
-                Scale = _resolution.X / 10f,
+                //Scale = _resolution.X / 10f,
+                Scale = 10f,
             };
 
         }
@@ -147,16 +154,20 @@ namespace Whitespace.App
             if (Keyboard.GetState().IsKeyDown(Keys.A)) accelChange.X += -1;
             if (Keyboard.GetState().IsKeyDown(Keys.D)) accelChange.X += 1;
 
-            accelChange = accelChange.NormalizedCopy() * _resolution.Y;
+            //accelChange = accelChange.NormalizedCopy() * _resolution.Y;
+            accelChange = accelChange.NormalizedCopy();
 
             if(accelChange.IsNaN())
                 accelChange = Vector2.Zero;
 
-            _player.Acceleration = accelChange;
+            _player.Acceleration = accelChange * 100;
 
             DebugLog.Instance.LogFrame(accelChange);
 
             _player.Update(gameTime);
+
+            //_cam.Move(accelChange * u * gameTime.GetElapsedSeconds());
+
 
             ////
             base.Update(gameTime);
@@ -166,8 +177,10 @@ namespace Whitespace.App
         {
             GraphicsDevice.Clear(new Color(new Vector3(0.3f)));
             ////
+            Matrix transformation = _cam.GetViewMatrix();
 
-            _spriteBatch.Begin(blendState: BlendState.AlphaBlend);
+
+            _spriteBatch.Begin(blendState: BlendState.AlphaBlend, transformMatrix: transformation);
 
 
             _wave.Draw(_spriteBatch);
@@ -176,17 +189,7 @@ namespace Whitespace.App
 
             _spriteBatch.End();
 
-
-            ShapeBatch.Begin(GraphicsDevice);
-
-            ShapeBatch.BoxOutline(_something, Color.Red);
-
-            ShapeBatch.Triangle(
-                new Vector2(300),
-                (float)((Math.Sin(gameTime.TotalGameTime.TotalSeconds * 2) + 1) * 100) + 50,
-                Color.Blue);
-
-            ShapeBatch.End();
+            
 
             //Draw debug log
             _spriteBatch.Begin();
