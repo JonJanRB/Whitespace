@@ -17,6 +17,12 @@ namespace Whitespace.App
 {
     public class WhitespaceGame : Game
     {
+        /// <summary>
+        /// THE unit
+        /// </summary>
+        public static float u;
+
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -63,6 +69,10 @@ namespace Whitespace.App
             _resolution = new Vector2(
                 _graphics.PreferredBackBufferWidth,
                 _graphics.PreferredBackBufferHeight);
+
+            //21 by 49 so get the factor of 21 that this screen's width is
+            u = _graphics.PreferredBackBufferWidth / 21f;
+
 
             ////
             base.Initialize();
