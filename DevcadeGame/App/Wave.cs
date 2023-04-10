@@ -14,7 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
-namespace Whitespace
+namespace Whitespace.App
 {
     /// <summary>
     /// The rising white space that the player must avoid
@@ -43,10 +43,10 @@ namespace Whitespace
                 Emitters =
                 {
                     new ParticleEmitter(
-                        texture, 20, TimeSpan.FromSeconds(10),
+                        texture, 200, TimeSpan.FromSeconds(2),
                         Profile.Line(Vector2.UnitX, Size.X))
                     {
-                        Parameters = 
+                        Parameters =
                         {
                             Speed = new Range<float>(0f, 50f),
                             Quantity = 3,
