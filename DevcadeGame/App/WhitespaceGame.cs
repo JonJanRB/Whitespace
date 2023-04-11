@@ -19,18 +19,15 @@ namespace Whitespace.App
     public class WhitespaceGame : Game
     {
         /// <summary>
-        /// THE unit
+        /// The ratio of the devcade's resolution
         /// </summary>
-        //public static float u;
+        public readonly Point Ratio = new Point(21, 49);
 
-        private OrthographicCamera _cam;
-
+        //Drawings
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
+        private OrthographicCamera _cam;
 
-        private Rectangle _something;
-
-        private Wave _wave;
 
         //Textures
         private Texture2D _squareTexture;
@@ -40,9 +37,7 @@ namespace Whitespace.App
 
         //Physics objects
         private PhysicsObject _player;
-
-        //Resolution
-        private Vector2 _resolution;
+        private PhysicsObject _test;
 
         public WhitespaceGame()
         {
@@ -69,16 +64,14 @@ namespace Whitespace.App
             #endregion
             ////
 
+            //Set up singeltons
+            PhysicsManager.Initialize();
 
-
-            _resolution = new Vector2(
-                _graphics.PreferredBackBufferWidth,
-                _graphics.PreferredBackBufferHeight);
-
-            //21 by 49 so get the factor of 21 that this screen's width is
-            //u = _graphics.PreferredBackBufferWidth / 21f;
-
-            _cam = new OrthographicCamera(new BoxingViewportAdapter(Window, GraphicsDevice, 21, 49));
+            //Setup camera to work for any window size
+            _cam = new OrthographicCamera(
+                    new BoxingViewportAdapter(
+                        Window, GraphicsDevice,
+                        Ratio.X * 10, Ratio.Y * 10));
 
             ////
             base.Initialize();
@@ -104,30 +97,31 @@ namespace Whitespace.App
             DebugLog.Instance.Font = _font;
             DebugLog.Instance.Scale = 0.1f;
 
-            _wave = new Wave(new TextureRegion2D(_squareTexture));
-
             _player = new PhysicsObject()
             {
                 Texture = _squareTexture,
                 Collider = new CircleF(new Vector2(100), 50),
-                Tint = Color.Red,
-                //Scale = _resolution.X / 10f,
+                Tint = Color.Blue,
                 Scale = 10f,
             };
 
-        }
-
-        protected override void UnloadContent()
-        {
-            //IDK why but unload these things
-            _squareTexture.Dispose();
+            _test = new PhysicsObject()
+            {
+                Texture = _squareTexture,
+                Collider = new CircleF(new Vector2(100), 50),
+                Tint = Color.Red,
+                Scale = 10f,
+                Position = new Vector2(100, 100)
+            };
         }
 
         protected override void Update(GameTime gameTime)
         {
+            KeyboardState ks = Keyboard.GetState();
+
             Input.Update(); // Updates the state of the input library
-                            //Emergency Exit
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape) ||
+            //Emergency Exit
+            if (ks.IsKeyDown(Keys.Escape) ||
                 Input.GetButton(1, Input.ArcadeButtons.Menu) &&
                 Input.GetButton(2, Input.ArcadeButtons.Menu))
             {
@@ -135,39 +129,30 @@ namespace Whitespace.App
             }
             ////
 
-
-            _something = new Rectangle(
-                100, 100,
-                (int)((Math.Sin(gameTime.TotalGameTime.TotalSeconds * 2) + 1) * 100) + 50,
-                (int)((Math.Sin(gameTime.TotalGameTime.TotalSeconds * 2) + 1) * 100) + 50);
-
-            _wave.Position = Mouse.GetState().Position.ToVector2();
-            _wave.Update(gameTime);
-
+            //Direction of movement
+            Vector2 stickDirection = Input.GetStick(1);
+#if DEBUG
+            stickDirection = GetKeyboardStickDirection();
+#endif
+            stickDirection.Normalize();
+            if(stickDirection.IsNaN()) stickDirection = Vector2.Zero;
 
 
-            Vector2 accelChange = Vector2.Zero;
 
-
-            if (Keyboard.GetState().IsKeyDown(Keys.W)) accelChange.Y += -1;
-            if (Keyboard.GetState().IsKeyDown(Keys.S)) accelChange.Y += 1;
-            if (Keyboard.GetState().IsKeyDown(Keys.A)) accelChange.X += -1;
-            if (Keyboard.GetState().IsKeyDown(Keys.D)) accelChange.X += 1;
-
-            //accelChange = accelChange.NormalizedCopy() * _resolution.Y;
-            accelChange = accelChange.NormalizedCopy();
-
-            if(accelChange.IsNaN())
-                accelChange = Vector2.Zero;
-
-            _player.Acceleration = accelChange * 100;
-
-            DebugLog.Instance.LogFrame(accelChange);
+            _player.Acceleration = stickDirection * 10f;
 
             _player.Update(gameTime);
 
-            //_cam.Move(accelChange * u * gameTime.GetElapsedSeconds());
 
+            //Update physics manager
+            PhysicsManager.IN.Acceleration = stickDirection.LengthSquared();
+            PhysicsManager.IN.Update(gameTime);
+
+            //_test.Scale = (PhysicsManager.IN.TimeSpeed + 1)*100;
+            _test.Acceleration = new Vector2(1f);
+            _test.Update(gameTime);
+
+            DebugLog.Instance.LogFrame(PhysicsManager.IN.TimeSpeed);
 
             ////
             base.Update(gameTime);
@@ -177,15 +162,17 @@ namespace Whitespace.App
         {
             GraphicsDevice.Clear(new Color(new Vector3(0.3f)));
             ////
+            
+            //Camera matrix
             Matrix transformation = _cam.GetViewMatrix();
-
-
             _spriteBatch.Begin(blendState: BlendState.AlphaBlend, transformMatrix: transformation);
 
 
-            _wave.Draw(_spriteBatch);
-
             _player.Draw(_spriteBatch);
+            //_player.DrawHitbox(_spriteBatch);
+
+            _test.Draw(_spriteBatch);
+            //_test.DrawHitbox(_spriteBatch);
 
             _spriteBatch.End();
 
@@ -193,11 +180,24 @@ namespace Whitespace.App
 
             //Draw debug log
             _spriteBatch.Begin();
-            DebugLog.Instance.Draw(_spriteBatch, _resolution);
+            DebugLog.Instance.Draw(
+                _spriteBatch,
+                _graphics.PreferredBackBufferWidth,
+                _graphics.PreferredBackBufferHeight);
             _spriteBatch.End();
 
             ////
             base.Draw(gameTime);
+        }
+
+        private Vector2 GetKeyboardStickDirection()
+        {
+            Vector2 direction = Vector2.Zero;
+            if (Keyboard.GetState().IsKeyDown(Keys.W)) direction.Y -= 1;
+            if (Keyboard.GetState().IsKeyDown(Keys.S)) direction.Y += 1;
+            if (Keyboard.GetState().IsKeyDown(Keys.D)) direction.X += 1;
+            if (Keyboard.GetState().IsKeyDown(Keys.A)) direction.X -= 1;
+            return direction;
         }
     }
 }

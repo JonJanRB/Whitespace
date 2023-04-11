@@ -172,7 +172,7 @@ namespace Whitespace.App.Util
         /// <param name="spriteBatch">Sprite batch to draw to</param>
         /// <param name="screenHeight">The width of the screen</param>
         /// <param name="screenWidth">The height of the screen</param>
-        public void Draw(SpriteBatch spriteBatch, Vector2 resolution)
+        public void Draw(SpriteBatch spriteBatch, int screenWidth, int screenHeight)
         {
             //The starting position
             Vector2 currentPosition = new Vector2(10, 10);
@@ -192,7 +192,7 @@ namespace Whitespace.App.Util
             updateMessages.Clear();
 
             //Set position to top right corner now
-            currentPosition = new Vector2(resolution.X - 10, 10);
+            currentPosition = new Vector2(screenWidth - 10, 10);
 
             //The amount of messages to get rid of (if overflow off screen)
             int messagesToRemove = 0;
@@ -222,7 +222,7 @@ namespace Whitespace.App.Util
                 currentPosition.Y += Spacing;
 
                 //Check if going off screen
-                if (currentPosition.Y > resolution.Y)
+                if (currentPosition.Y > screenHeight)
                 {
                     messagesToRemove++;
                 }

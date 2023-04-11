@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Whitespace.App.Util;
 
 namespace Whitespace.App
 {
@@ -42,11 +43,11 @@ namespace Whitespace.App
 
         public void Update(GameTime gameTime)
         {
-            Velocity += Acceleration * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            Position += Velocity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            Velocity += Acceleration * PhysicsManager.IN.TimeSpeed;//(float)gameTime.ElapsedGameTime.TotalSeconds;
+            Position += Velocity * PhysicsManager.IN.TimeSpeed;//(float)gameTime.ElapsedGameTime.TotalSeconds;
 
             //Friction
-            Velocity *= 0.9f;
+            Velocity *= PhysicsManager.IN.Friction;
         }
 
         public void Draw(SpriteBatch spriteBatch)
