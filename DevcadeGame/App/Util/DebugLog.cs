@@ -42,7 +42,7 @@ namespace Whitespace.App.Util
             /// <param name="text">Text of this message</param>
             /// <param name="color">Color of this message</param
             /// <param name="messageDuration">The duration that this message should be displayed in seconds</param>
-            public Message(string text, Color color, float messageDuration = 999999999f)
+            public Message(string text, Color color, float messageDuration = 9999f)
             {
                 Text = text;
                 Color = color;
@@ -170,8 +170,8 @@ namespace Whitespace.App.Util
         /// using the specified viewport as an alignment guide
         /// </summary>
         /// <param name="spriteBatch">Sprite batch to draw to</param>
-        /// <param name="screenHeight">The width of the screen</param>
-        /// <param name="screenWidth">The height of the screen</param>
+        /// <param name="screenWidth">The width of the screen</param>
+        /// <param name="screenHeight">The height of the screen</param>
         public void Draw(SpriteBatch spriteBatch, int screenWidth, int screenHeight)
         {
             //The starting position

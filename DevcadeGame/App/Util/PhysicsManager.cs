@@ -35,12 +35,22 @@ namespace Whitespace.App.Util
 
         public float Acceleration { get; set; }
 
-        public float TimeSpeed { get; set; }
+        public float GameSpeed { get; private set; }
 
-        public void Update(GameTime gameTime)
+        public float ElapsedTime { get; private set; }
+
+        /// <summary>
+        /// The thing to multiply everything to get the amount they should move this frame
+        /// </summary>
+        public float TimeSpeed { get; private set; }
+
+        public void Update(GameTime gameTime, float gameSpeed)
         {
-            TimeSpeed += Acceleration * (float)gameTime.ElapsedGameTime.TotalSeconds;
-            TimeSpeed *= Friction;
+            ElapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            GameSpeed = gameSpeed;
+            TimeSpeed = GameSpeed * ElapsedTime;
+            //GameSpeed += Acceleration * ElapsedTime;
+            //GameSpeed *= Friction;
         }
     }
 }

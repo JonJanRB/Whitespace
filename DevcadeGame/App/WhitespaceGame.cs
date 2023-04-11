@@ -97,20 +97,18 @@ namespace Whitespace.App
             DebugLog.Instance.Font = _font;
             DebugLog.Instance.Scale = 0.1f;
 
-            _player = new PhysicsObject()
+            _player = new PhysicsObject(_squareTexture)
             {
-                Texture = _squareTexture,
-                Collider = new CircleF(new Vector2(100), 50),
+                HitboxRadius = 50,
                 Tint = Color.Blue,
-                Scale = 10f,
+                Scale = new Vector2(10f),
             };
 
-            _test = new PhysicsObject()
+            _test = new PhysicsObject(_triangleTexture)
             {
-                Texture = _squareTexture,
-                Collider = new CircleF(new Vector2(100), 50),
+                HitboxRadius = 50,
                 Tint = Color.Red,
-                Scale = 10f,
+                Scale = new Vector2(10f),
                 Position = new Vector2(100, 100)
             };
         }
@@ -139,20 +137,24 @@ namespace Whitespace.App
 
 
 
-            _player.Acceleration = stickDirection * 10f;
+            _player.Acceleration = stickDirection * 500f;
 
-            _player.Update(gameTime);
+            _player.Rotation = (float)gameTime.TotalGameTime.TotalSeconds;
+
+            _player.Update();
 
 
             //Update physics manager
             PhysicsManager.IN.Acceleration = stickDirection.LengthSquared();
-            PhysicsManager.IN.Update(gameTime);
+            PhysicsManager.IN.Update(gameTime, 1f);
+
+            float timeSpeed = PhysicsManager.IN.GameSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             //_test.Scale = (PhysicsManager.IN.TimeSpeed + 1)*100;
-            _test.Acceleration = new Vector2(1f);
-            _test.Update(gameTime);
+            _test.Acceleration = new Vector2(50f);
+            _test.Update();
 
-            DebugLog.Instance.LogFrame(PhysicsManager.IN.TimeSpeed);
+            DebugLog.Instance.LogFrame(PhysicsManager.IN.GameSpeed);
 
             ////
             base.Update(gameTime);
@@ -169,14 +171,12 @@ namespace Whitespace.App
 
 
             _player.Draw(_spriteBatch);
-            //_player.DrawHitbox(_spriteBatch);
+            _player.DrawHitbox(_spriteBatch);
 
             _test.Draw(_spriteBatch);
-            //_test.DrawHitbox(_spriteBatch);
+            _test.DrawHitbox(_spriteBatch);
 
             _spriteBatch.End();
-
-            
 
             //Draw debug log
             _spriteBatch.Begin();

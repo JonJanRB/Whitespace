@@ -13,17 +13,24 @@ namespace Whitespace.App
 {
     internal class PhysicsObject
     {
-        public Texture2D Texture { get; set; }
+        public Texture2D Texture { get; }
 
-        public CircleF Collider { get; set; }
+        public Vector2 Origin { get; }
 
+        public CircleF Collider => new CircleF(Position.ToPoint(), HitboxRadius);
+
+        public float HitboxRadius { get; set; }
+            
         public Color Tint { get; set; }
 
         public float Rotation { get; set; }
 
-        public float Scale { get; set; }
-
-        public Vector2 Origin { get; set; }
+        /// <summary>
+        /// Making it so every texture is the same size initially
+        /// </summary>
+        private Vector2 _textureDownscale;
+        
+        public Vector2 Scale { get; set; }
 
         public Vector2 Position { get; set; }
 
@@ -31,9 +38,12 @@ namespace Whitespace.App
 
         public Vector2 Acceleration { get; set; }
 
-        public PhysicsObject()
+        public PhysicsObject(Texture2D texture)
         {
-
+            Texture = texture;
+            Vector2 textureSize = texture.Bounds.Size.ToVector2();
+            _textureDownscale = new Vector2(1f / textureSize.X, 1f / textureSize.Y);
+            Origin = textureSize / 2f;
         }
 
         public bool Intersects(IShapeF shape)
@@ -41,10 +51,12 @@ namespace Whitespace.App
             return Collider.Intersects(shape);
         }
 
-        public void Update(GameTime gameTime)
+        public void Update() => Update(PhysicsManager.IN.TimeSpeed);
+
+        public void Update(float timeSpeed)
         {
-            Velocity += Acceleration * PhysicsManager.IN.TimeSpeed;//(float)gameTime.ElapsedGameTime.TotalSeconds;
-            Position += Velocity * PhysicsManager.IN.TimeSpeed;//(float)gameTime.ElapsedGameTime.TotalSeconds;
+            Velocity += Acceleration * timeSpeed;
+            Position += Velocity * timeSpeed;
 
             //Friction
             Velocity *= PhysicsManager.IN.Friction;
@@ -53,13 +65,13 @@ namespace Whitespace.App
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(
-                Texture, Position, null, Tint,
-                Rotation, Origin, Scale, SpriteEffects.None, 0f);
+                Texture, Position, null, Tint, Rotation, Origin,
+                _textureDownscale * Scale, SpriteEffects.None, 0f);
         }
 
         public void DrawHitbox(SpriteBatch spriteBatch)
         {
-            spriteBatch.DrawCircle(Collider, 32, Color.Red, 10f, 1f);
+            spriteBatch.DrawCircle(Collider, 50, Color.Red, 1f, 1f);
         }
     }
 }
