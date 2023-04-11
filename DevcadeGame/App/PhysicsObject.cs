@@ -51,9 +51,9 @@ namespace Whitespace.App
             return Collider.Intersects(shape);
         }
 
-        public void Update() => Update(PhysicsManager.IN.TimeSpeed);
+        public virtual void Update() => Update(PhysicsManager.IN.TimeSpeed);
 
-        public void Update(float timeSpeed)
+        public virtual void Update(float timeSpeed)
         {
             Velocity += Acceleration * timeSpeed;
             Position += Velocity * timeSpeed;
@@ -62,14 +62,14 @@ namespace Whitespace.App
             Velocity *= PhysicsManager.IN.Friction;
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public virtual void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(
                 Texture, Position, null, Tint, Rotation, Origin,
                 _textureDownscale * Scale, SpriteEffects.None, 0f);
         }
 
-        public void DrawHitbox(SpriteBatch spriteBatch)
+        public virtual void DrawHitbox(SpriteBatch spriteBatch)
         {
             spriteBatch.DrawCircle(Collider, 50, Color.Red, 1f, 1f);
         }

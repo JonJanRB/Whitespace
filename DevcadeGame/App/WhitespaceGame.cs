@@ -36,7 +36,7 @@ namespace Whitespace.App
         private SpriteFont _font;
 
         //Physics objects
-        private PhysicsObject _player;
+        private Player _player;
         private PhysicsObject _test;
 
         public WhitespaceGame()
@@ -97,7 +97,7 @@ namespace Whitespace.App
             DebugLog.Instance.Font = _font;
             DebugLog.Instance.Scale = 0.1f;
 
-            _player = new PhysicsObject(_squareTexture)
+            _player = new Player(_squareTexture)
             {
                 HitboxRadius = 50,
                 Tint = Color.Blue,
@@ -133,13 +133,18 @@ namespace Whitespace.App
             stickDirection = GetKeyboardStickDirection();
 #endif
             stickDirection.Normalize();
-            if(stickDirection.IsNaN()) stickDirection = Vector2.Zero;
-
-
-
-            _player.Acceleration = stickDirection * 500f;
-
-            _player.Rotation = (float)gameTime.TotalGameTime.TotalSeconds;
+            //Set target direction only if in a nuetral position
+            if (!stickDirection.IsNaN())
+            {
+                _player.TargetDirection = stickDirection.ToAngle();
+            }
+            else
+            {
+                _player.TargetDirection = _player.Direction;
+            }
+            
+            _player.Position = Mouse.GetState().Position.ToVector2();
+            
 
             _player.Update();
 
