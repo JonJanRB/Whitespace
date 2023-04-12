@@ -37,6 +37,8 @@ namespace Whitespace.App.Util
 
         public float ElapsedTime { get; private set; }
 
+        public Vector2 Gravity { get; set; } = new Vector2(0f, 100000f);
+
         /// <summary>
         /// The thing to multiply everything to get the amount they should move this frame
         /// </summary>

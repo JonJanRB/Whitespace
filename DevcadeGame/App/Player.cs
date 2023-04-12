@@ -39,6 +39,8 @@ namespace Whitespace.App
         /// <param name="timeSpeed"></param>
         public override void Update(float timeSpeed)
         {
+            MomentOfAcceleration += PhysicsManager.IN.Gravity * timeSpeed;
+
             base.Update(timeSpeed);
 
             Direction += MathHelper.WrapAngle(TargetDirection - Direction) * 0.05f;

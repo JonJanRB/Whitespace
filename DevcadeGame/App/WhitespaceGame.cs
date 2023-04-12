@@ -93,7 +93,7 @@ namespace Whitespace.App
             _cam = new OrthographicCamera(
                     new BoxingViewportAdapter(
                         Window, GraphicsDevice,
-                        Ratio.X * 100, Ratio.Y * 100));
+                        Ratio.X * 10, Ratio.Y * 10));
             _cam.Zoom = _defaultZoom;
             _xBounds = new Vector2(
                 _cam.BoundingRectangle.TopLeft.X,
@@ -115,17 +115,17 @@ namespace Whitespace.App
 
             _player = new Player(_squareTexture)
             {
-                HitboxRadius = 500f,
+                HitboxRadius = 100f,
                 Tint = Color.Blue,
-                Scale = new Vector2(1000f),
+                Scale = new Vector2(100f),
             };
 
             _test = new PhysicsObject(_triangleTexture)
             {
-                HitboxRadius = 500f,
+                HitboxRadius = 100f,
                 Tint = Color.Red,
                 Scale = new Vector2(100f),
-                Position = new Vector2(1000f)
+                Position = new Vector2(100f)
             };
         }
 
@@ -201,7 +201,7 @@ namespace Whitespace.App
             _player.Update();
 
 
-            _test.Acceleration = new Vector2(50f);
+            _test.MomentOfAcceleration = new Vector2(50f);
             _test.Update();
 
 #if DEBUG

@@ -36,7 +36,7 @@ namespace Whitespace.App
 
         public Vector2 Velocity { get; set; }
 
-        public Vector2 Acceleration { get; set; }
+        public Vector2 MomentOfAcceleration { get; set; }
 
         public PhysicsObject(Texture2D texture)
         {
@@ -55,11 +55,14 @@ namespace Whitespace.App
 
         public virtual void Update(float timeSpeed)
         {
-            Velocity += Acceleration * timeSpeed;
+            Velocity += MomentOfAcceleration * timeSpeed;
             Position += Velocity * timeSpeed;
 
             //Friction
             Velocity -= Velocity * PhysicsManager.IN.Friction * timeSpeed;
+
+            //Reset acceleration
+            MomentOfAcceleration = Vector2.Zero;
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)
