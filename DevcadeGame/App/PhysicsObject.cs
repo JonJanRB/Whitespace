@@ -59,7 +59,7 @@ namespace Whitespace.App
             Position += Velocity * timeSpeed;
 
             //Friction
-            Velocity *= PhysicsManager.IN.Friction;
+            Velocity -= Velocity * PhysicsManager.IN.Friction * timeSpeed;
         }
 
         public virtual void Draw(SpriteBatch spriteBatch)

@@ -13,13 +13,30 @@ namespace Whitespace.App
     internal class Player : PhysicsObject
     {
 
-        public float Direction { get; set; }
+        public float Direction
+        {
+            get => _direction;
+            set
+            {
+                _direction = value;
+                DirectionVector = new Vector2(MathF.Cos(_direction), MathF.Sin(_direction));
+            }
+        }
+        private float _direction;
 
         public float TargetDirection { get; set; }
 
+        /// <summary>
+        /// Normalized vector of where you are facing
+        /// </summary>
+        public Vector2 DirectionVector { get; private set; }
+
         public Player(Texture2D texture) : base(texture) { }
 
-
+        /// <summary>
+        /// Updates direction vector
+        /// </summary>
+        /// <param name="timeSpeed"></param>
         public override void Update(float timeSpeed)
         {
             base.Update(timeSpeed);
@@ -30,7 +47,7 @@ namespace Whitespace.App
         public override void DrawHitbox(SpriteBatch spriteBatch)
         {
             base.DrawHitbox(spriteBatch);
-            spriteBatch.DrawLine(Position, 1000f, Direction - MathHelper.PiOver2, Color.GreenYellow, 50f, 1f);
+            spriteBatch.DrawLine(Position, 1000f, Direction, Color.GreenYellow, 50f);
         }
     }
 }

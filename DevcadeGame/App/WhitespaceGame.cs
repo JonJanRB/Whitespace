@@ -43,6 +43,10 @@ namespace Whitespace.App
         private Player _player;
         private PhysicsObject _test;
 
+#if DEBUG
+        private KeyboardState _pk;
+#endif
+
         public WhitespaceGame()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -148,51 +152,62 @@ namespace Whitespace.App
             //Set target direction only if in a nuetral position
             if (!stickDirection.IsNaN())
             {
-                _player.TargetDirection = stickDirection.ToAngle();
+                _player.TargetDirection = stickDirection.ToAngle() - MathHelper.PiOver2;
             }
             else
             {
                 _player.TargetDirection = _player.Direction;
             }
 
+            //Change game speed based on button press
             float targetGameSpeed = 1f;
-
             if(Input.GetButton(1, Input.ArcadeButtons.A1))
             {
                 targetGameSpeed = 0.1f;
+                _cam.ZoomToWorldPoint(
+                    _player.Position + _player.DirectionVector * 1000f,
+                    _defaultZoom * 2f, 0.1f, _xBounds);
             }
-
 #if DEBUG
             if(ks.IsKeyDown(Keys.Space))
             {
-                targetGameSpeed = 0.1f;
+                targetGameSpeed = 0.01f;
+                _cam.ZoomToWorldPoint(
+                    _player.Position + _player.DirectionVector * 1000f,
+                    _defaultZoom * 2f, 0.1f, _xBounds);
             }
 #endif
-            
-
-            if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+            //Check let go
+            if (Input.GetButtonUp(1, Input.ArcadeButtons.A1))
             {
-                _cam.ZoomToWorldPoint(
-                    _cam.ScreenToWorld(Mouse.GetState().Position.ToVector2()),
-                    _defaultZoom * 1.3f, 0.1f, _xBounds);
+                
             }
-            //Default zoom to
-            _cam.ZoomToWorldPoint(Vector2.Zero, _defaultZoom, 0.1f, _xBounds);
+#if DEBUG
+            if (ks.IsKeyUp(Keys.Space) && _pk.IsKeyDown(Keys.Space))
+            {
+                _player.Velocity = _player.DirectionVector * 10000f;
+            }
+#endif
 
-            DebugLog.Instance.LogFrame("\n\n"+_cam.Position, Color.Yellow);
+            //Default zoom to
+            _cam.ZoomToWorldPoint(_player.Position, _defaultZoom, 0.1f, _xBounds);
+
 
             //Update physics manager
             PhysicsManager.IN.Update(gameTime, targetGameSpeed);
 
-            
+
 
             _player.Update();
 
-            float timeSpeed = PhysicsManager.IN.GameSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             _test.Acceleration = new Vector2(50f);
             _test.Update();
 
+#if DEBUG
+            _pk = ks;
+#endif
+            DebugLog.Instance.LogFrame("\n\n\n\n" + _player.Velocity);
 
             ////
             base.Update(gameTime);
@@ -230,6 +245,8 @@ namespace Whitespace.App
             base.Draw(gameTime);
         }
 
+#if DEBUG
+
         private Vector2 GetKeyboardStickDirection()
         {
             Vector2 direction = Vector2.Zero;
@@ -240,6 +257,7 @@ namespace Whitespace.App
             return direction;
         }
 
-        
+#endif
+
     }
 }
