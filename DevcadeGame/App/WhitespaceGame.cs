@@ -13,6 +13,8 @@ using MonoGame.Extended.TextureAtlases;
 using MonoGame.Extended;
 using System.Collections.Generic;
 using MonoGame.Extended.ViewportAdapters;
+using static System.Formats.Asn1.AsnWriter;
+using System.Linq;
 
 namespace Whitespace.App
 {
@@ -42,6 +44,8 @@ namespace Whitespace.App
         //Physics objects
         private Player _player;
         private PhysicsObject _test;
+
+        private List<PhysicsObject> _orbs;
 
 #if DEBUG
         private KeyboardState _pk;
@@ -127,6 +131,17 @@ namespace Whitespace.App
                 Scale = new Vector2(100f),
                 Position = new Vector2(100f)
             };
+
+            _orbs = new List<PhysicsObject>
+            {
+                new PhysicsObject(_circleTexture)
+                {
+                    HitboxRadius = 70f,
+                    Tint = Color.Green,
+                    Scale = new Vector2(100f),
+                    Position = new Vector2((_xBounds.Y + _xBounds.X) * 0.5f)
+                }
+            };
         }
 
         protected override void Update(GameTime gameTime)
@@ -163,7 +178,7 @@ namespace Whitespace.App
             float targetGameSpeed = 1f;
             if(Input.GetButton(1, Input.ArcadeButtons.A1))
             {
-                targetGameSpeed = 0.1f;
+                targetGameSpeed = 0.02f;
                 _cam.ZoomToWorldPoint(
                     _player.Position + _player.DirectionVector * 1000f,
                     _defaultZoom * 2f, 0.1f, _xBounds);
@@ -171,7 +186,7 @@ namespace Whitespace.App
 #if DEBUG
             if(ks.IsKeyDown(Keys.Space))
             {
-                targetGameSpeed = 0.01f;
+                targetGameSpeed = 0.02f;
                 _cam.ZoomToWorldPoint(
                     _player.Position + _player.DirectionVector * 1000f,
                     _defaultZoom * 2f, 0.1f, _xBounds);
@@ -188,21 +203,40 @@ namespace Whitespace.App
                 _player.Velocity = _player.DirectionVector * 10000f;
             }
 #endif
-
             //Default zoom to
             _cam.ZoomToWorldPoint(_player.Position, _defaultZoom, 0.1f, _xBounds);
 
 
+            if(_player.Position.X < _xBounds.X)
+            {
+                _player.Velocity = new Vector2(MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+            }
+            else if(_player.Position.X > _xBounds.Y)
+            {
+                _player.Velocity = new Vector2(-MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+            }
+
             //Update physics manager
-            PhysicsManager.IN.Update(gameTime, targetGameSpeed);
+            PhysicsManager.IN.Update(gameTime, targetGameSpeed, 0.1f);
 
 
 
             _player.Update();
 
 
-            _test.MomentOfAcceleration = new Vector2(50f);
+            //_test.MomentOfAcceleration = new Vector2(50f);
             _test.Update();
+
+            foreach(PhysicsObject orb in _orbs)
+            {
+                if(_player.Intersects(orb.Collider))
+                {
+                    _player.Velocity = _player.Velocity + new Vector2(0, -1000);
+                }
+                orb.Update();
+            }
+
+
 
 #if DEBUG
             _pk = ks;
@@ -224,6 +258,13 @@ namespace Whitespace.App
 
             //Draw background of canvas
             _spriteBatch.Draw(_squareTexture, _cam.BoundingRectangle.ToRectangle(), _bg);
+
+            foreach(PhysicsObject orb in _orbs)
+            {
+                orb.Draw(_spriteBatch);
+                orb.DrawHitbox(_spriteBatch);
+            }
+
 
             _player.Draw(_spriteBatch);
             _player.DrawHitbox(_spriteBatch);

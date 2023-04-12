@@ -37,17 +37,17 @@ namespace Whitespace.App.Util
 
         public float ElapsedTime { get; private set; }
 
-        public Vector2 Gravity { get; set; } = new Vector2(0f, 100000f);
+        public Vector2 Gravity { get; set; } = new Vector2(0f, 500000f);
 
         /// <summary>
         /// The thing to multiply everything to get the amount they should move this frame
         /// </summary>
         public float TimeSpeed { get; private set; }
 
-        public void Update(GameTime gameTime, float targetGameSpeed)
+        public void Update(GameTime gameTime, float targetGameSpeed, float easing)
         {
             ElapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            GameSpeed += (targetGameSpeed - GameSpeed) * 0.5f;
+            GameSpeed += (targetGameSpeed - GameSpeed) * easing;
             TimeSpeed = GameSpeed * ElapsedTime;
         }
     }

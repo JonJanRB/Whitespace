@@ -19,13 +19,14 @@ namespace Whitespace.App.Util
 
         public static void BoundedMove(this OrthographicCamera cam, Vector2 moveAmount, Vector2 xBounds)
         {
-            if (cam.Position.X < xBounds.X)
+            float leftBound = cam.BoundingRectangle.Left;
+            if (leftBound < xBounds.X)
             {
-                moveAmount.X += xBounds.X - cam.Position.X;
+                moveAmount.X += xBounds.X - leftBound;
             }
             else
             {
-                float rightBound = cam.BoundingRectangle.Width + cam.Position.X;
+                float rightBound = cam.BoundingRectangle.Right;
                 if (rightBound > xBounds.Y)
                     moveAmount.X -= rightBound - xBounds.Y;
             }
