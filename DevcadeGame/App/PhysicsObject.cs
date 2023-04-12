@@ -38,6 +38,8 @@ namespace Whitespace.App
 
         public Vector2 MomentOfAcceleration { get; set; }
 
+        public bool Enabled { get; set; }
+
         public PhysicsObject(Texture2D texture)
         {
             Texture = texture;

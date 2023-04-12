@@ -234,6 +234,7 @@ namespace Whitespace.App
                     _player.Velocity =
                         new Vector2(-_player.Velocity.X,
                         -MathF.Abs(_player.Velocity.Y) + -1000f);
+                    
                 }
                 orb.Update();
             }
@@ -301,6 +302,8 @@ namespace Whitespace.App
         }
 
 #endif
+
+        
 
     }
 }
