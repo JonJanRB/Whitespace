@@ -37,6 +37,7 @@ namespace Whitespace.App
 
         private Color _bg;
         private Vector2 _xBounds;
+        private const float _defaultZoom = 0.1f;
 
         //Physics objects
         private Player _player;
@@ -89,7 +90,7 @@ namespace Whitespace.App
                     new BoxingViewportAdapter(
                         Window, GraphicsDevice,
                         Ratio.X * 100, Ratio.Y * 100));
-            _cam.Zoom = 0.1f;
+            _cam.Zoom = _defaultZoom;
             _xBounds = new Vector2(
                 _cam.BoundingRectangle.TopLeft.X,
                 _cam.BoundingRectangle.BottomRight.X);
@@ -173,10 +174,10 @@ namespace Whitespace.App
             {
                 _cam.ZoomToWorldPoint(
                     _cam.ScreenToWorld(Mouse.GetState().Position.ToVector2()),
-                    0.4f, 0.1f, _xBounds);
+                    _defaultZoom * 1.3f, 0.1f, _xBounds);
             }
             //Default zoom to
-            _cam.ZoomToWorldPoint(Vector2.Zero, 0.1f, 0.1f, _xBounds);
+            _cam.ZoomToWorldPoint(Vector2.Zero, _defaultZoom, 0.1f, _xBounds);
 
             DebugLog.Instance.LogFrame("\n\n"+_cam.Position, Color.Yellow);
 
