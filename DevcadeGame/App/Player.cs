@@ -24,19 +24,13 @@ namespace Whitespace.App
         {
             base.Update(timeSpeed);
 
-            DebugLog.Instance.LogFrame("Target: "+MathHelper.ToDegrees(TargetDirection), Color.Red);
-            DebugLog.Instance.LogFrame("Current: " + MathHelper.ToDegrees(Direction), Color.Red);
-            DebugLog.Instance.LogFrame("Target-current: "+ MathHelper.ToDegrees(TargetDirection - Direction), Color.Red);
-            DebugLog.Instance.LogFrame("Wrapped: "+ MathHelper.ToDegrees(MathHelper.WrapAngle(TargetDirection - Direction)), Color.Red);
-            
-
             Direction += MathHelper.WrapAngle(TargetDirection - Direction) * 0.05f;
         }
 
         public override void DrawHitbox(SpriteBatch spriteBatch)
         {
             base.DrawHitbox(spriteBatch);
-            spriteBatch.DrawLine(Position, 100f, Direction - MathHelper.PiOver2, Color.GreenYellow, 5, 1f);
+            spriteBatch.DrawLine(Position, 1000f, Direction - MathHelper.PiOver2, Color.GreenYellow, 50f, 1f);
         }
     }
 }

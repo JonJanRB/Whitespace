@@ -33,8 +33,6 @@ namespace Whitespace.App.Util
 
         public float Friction { get; set; } = 0.9f;
 
-        public float Acceleration { get; set; }
-
         public float GameSpeed { get; private set; }
 
         public float ElapsedTime { get; private set; }
@@ -44,13 +42,11 @@ namespace Whitespace.App.Util
         /// </summary>
         public float TimeSpeed { get; private set; }
 
-        public void Update(GameTime gameTime, float gameSpeed)
+        public void Update(GameTime gameTime, float targetGameSpeed)
         {
             ElapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            GameSpeed = gameSpeed;
+            GameSpeed += (targetGameSpeed - GameSpeed) * 0.5f;
             TimeSpeed = GameSpeed * ElapsedTime;
-            //GameSpeed += Acceleration * ElapsedTime;
-            //GameSpeed *= Friction;
         }
     }
 }

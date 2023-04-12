@@ -35,6 +35,9 @@ namespace Whitespace.App
         private Texture2D _triangleTexture;
         private SpriteFont _font;
 
+        private Color _bg;
+        private Vector2 _xBounds;
+
         //Physics objects
         private Player _player;
         private PhysicsObject _test;
@@ -43,7 +46,7 @@ namespace Whitespace.App
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            IsMouseVisible = false;
+            IsMouseVisible = true;
             Window.AllowUserResizing = true;
         }
 
@@ -67,11 +70,7 @@ namespace Whitespace.App
             //Set up singeltons
             PhysicsManager.Initialize();
 
-            //Setup camera to work for any window size
-            _cam = new OrthographicCamera(
-                    new BoxingViewportAdapter(
-                        Window, GraphicsDevice,
-                        Ratio.X * 10, Ratio.Y * 10));
+            _bg = new Color(0.1f, 0.1f, 0.1f);
 
             ////
             base.Initialize();
@@ -84,6 +83,18 @@ namespace Whitespace.App
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             ////
+
+            //Setup camera to work for any window size
+            _cam = new OrthographicCamera(
+                    new BoxingViewportAdapter(
+                        Window, GraphicsDevice,
+                        Ratio.X * 100, Ratio.Y * 100));
+            _cam.Zoom = 0.1f;
+            _xBounds = new Vector2(
+                _cam.BoundingRectangle.TopLeft.X,
+                _cam.BoundingRectangle.BottomRight.X);
+
+            DebugLog.Instance.LogPersistant(_xBounds);
 
             //1 pixel texture
             _squareTexture = new Texture2D(GraphicsDevice, 1, 1);
@@ -99,17 +110,17 @@ namespace Whitespace.App
 
             _player = new Player(_squareTexture)
             {
-                HitboxRadius = 50,
+                HitboxRadius = 500f,
                 Tint = Color.Blue,
-                Scale = new Vector2(10f),
+                Scale = new Vector2(1000f),
             };
 
             _test = new PhysicsObject(_triangleTexture)
             {
-                HitboxRadius = 50,
+                HitboxRadius = 500f,
                 Tint = Color.Red,
-                Scale = new Vector2(10f),
-                Position = new Vector2(100, 100)
+                Scale = new Vector2(100f),
+                Position = new Vector2(1000f)
             };
         }
 
@@ -142,24 +153,45 @@ namespace Whitespace.App
             {
                 _player.TargetDirection = _player.Direction;
             }
+
+            float targetGameSpeed = 1f;
+
+            if(Input.GetButton(1, Input.ArcadeButtons.A1))
+            {
+                targetGameSpeed = 0.1f;
+            }
+
+#if DEBUG
+            if(ks.IsKeyDown(Keys.Space))
+            {
+                targetGameSpeed = 0.1f;
+            }
+#endif
             
-            _player.Position = Mouse.GetState().Position.ToVector2();
+
+            if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+            {
+                _cam.ZoomToWorldPoint(
+                    _cam.ScreenToWorld(Mouse.GetState().Position.ToVector2()),
+                    0.4f, 0.1f, _xBounds);
+            }
+            //Default zoom to
+            _cam.ZoomToWorldPoint(Vector2.Zero, 0.1f, 0.1f, _xBounds);
+
+            DebugLog.Instance.LogFrame("\n\n"+_cam.Position, Color.Yellow);
+
+            //Update physics manager
+            PhysicsManager.IN.Update(gameTime, targetGameSpeed);
+
             
 
             _player.Update();
 
-
-            //Update physics manager
-            PhysicsManager.IN.Acceleration = stickDirection.LengthSquared();
-            PhysicsManager.IN.Update(gameTime, 1f);
-
             float timeSpeed = PhysicsManager.IN.GameSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            //_test.Scale = (PhysicsManager.IN.TimeSpeed + 1)*100;
             _test.Acceleration = new Vector2(50f);
             _test.Update();
 
-            DebugLog.Instance.LogFrame(PhysicsManager.IN.GameSpeed);
 
             ////
             base.Update(gameTime);
@@ -167,13 +199,15 @@ namespace Whitespace.App
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(new Color(new Vector3(0.3f)));
+            GraphicsDevice.Clear(Color.Black);
             ////
             
             //Camera matrix
             Matrix transformation = _cam.GetViewMatrix();
             _spriteBatch.Begin(blendState: BlendState.AlphaBlend, transformMatrix: transformation);
 
+            //Draw background of canvas
+            _spriteBatch.Draw(_squareTexture, _cam.BoundingRectangle.ToRectangle(), _bg);
 
             _player.Draw(_spriteBatch);
             _player.DrawHitbox(_spriteBatch);
@@ -204,5 +238,7 @@ namespace Whitespace.App
             if (Keyboard.GetState().IsKeyDown(Keys.A)) direction.X -= 1;
             return direction;
         }
+
+        
     }
 }

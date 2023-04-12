@@ -71,7 +71,7 @@ namespace Whitespace.App
 
         public virtual void DrawHitbox(SpriteBatch spriteBatch)
         {
-            spriteBatch.DrawCircle(Collider, 50, Color.Red, 1f, 1f);
+            spriteBatch.DrawCircle(Collider, 50, Color.Red, 10f, 1f);
         }
     }
 }
