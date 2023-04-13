@@ -47,3 +47,15 @@
 /processorParam:TextureFormat=Color
 /build:Filled Triangle.png
 
+#begin Test_quotemusic.wav
+/importer:WavImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Test_quotemusic.wav
+
+#begin Whitespace_MenuSelect.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Whitespace_MenuSelect.wav
+

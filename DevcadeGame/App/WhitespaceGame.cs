@@ -15,6 +15,8 @@ using System.Collections.Generic;
 using MonoGame.Extended.ViewportAdapters;
 using static System.Formats.Asn1.AsnWriter;
 using System.Linq;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 
 namespace Whitespace.App
 {
@@ -22,12 +24,6 @@ namespace Whitespace.App
     {
         Menu,
         Playing
-    }
-
-    public enum MenuState
-    {
-        Main,
-        Tutorial
     }
 
     public class WhitespaceGame : Game
@@ -65,6 +61,12 @@ namespace Whitespace.App
         //FSM
         private GameState _gameState;
 
+        private Menu _mainMenu;
+
+
+        //Sounds
+        private SoundEffect _menuMove;
+        private Song _testMus;
 
 #if DEBUG
         private KeyboardState _pk;
@@ -161,6 +163,13 @@ namespace Whitespace.App
             ObjectManager.Initialize(_cam.BoundingRectangle);
             _objMan = ObjectManager.IN;
 
+            //Menu
+            _mainMenu = new Menu(new Vector2(_cam.Center.X, _cam.BoundingRectangle.Y + 800f), _font, 500f);
+
+            //Sound
+            _menuMove = Content.Load<SoundEffect>("Whitespace_MenuSelect");
+            _testMus = Content.Load<Song>("Test_quotemusic");   
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -178,7 +187,7 @@ namespace Whitespace.App
             switch(_gameState)
             {
                 case GameState.Menu:
-
+                    UpdateMenu(gameTime);
                     break;
                 case GameState.Playing:
                     UpdateGame(gameTime);
@@ -197,7 +206,7 @@ namespace Whitespace.App
             switch (_gameState)
             {
                 case GameState.Menu:
-
+                    DrawMenu(gameTime);
                     break;
                 case GameState.Playing:
                     DrawGame(gameTime);
@@ -315,7 +324,7 @@ namespace Whitespace.App
             _spriteBatch.Draw(_squareTexture, _cam.BoundingRectangle.ToRectangle(), _bg);
 
             _objMan.Draw(_spriteBatch);
-            _objMan.DrawHitboxes(_spriteBatch);
+            //_objMan.DrawHitboxes(_spriteBatch);
 
             _player.Draw(_spriteBatch);
             _player.DrawHitbox(_spriteBatch);
@@ -334,70 +343,75 @@ namespace Whitespace.App
 
         private void UpdateMenu(GameTime gameTime)
         {
-            
 
-            //Change game speed based on button press
-            float targetGameSpeed = 1f;
-            if (Input.GetButton(1, Input.ArcadeButtons.A1))
-            {
-                targetGameSpeed = 0.02f;
-                _cam.ZoomToWorldPoint(
-                    _player.Position + _player.DirectionVector * 1000f,
-                    _defaultZoom * 2f, 0.1f, _xBounds);
-            }
 #if DEBUG
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+            if (_pk.IsKeyUp(Keys.S) && Keyboard.GetState().IsKeyDown(Keys.S))
             {
-                targetGameSpeed = 0.02f;
-                _cam.ZoomToWorldPoint(
-                    _player.Position + _player.DirectionVector * 1000f,
-                    _defaultZoom * 2f, 0.1f, _xBounds);
+                _mainMenu.Index++;
+                _menuMove.Play();
+            }
+            if(_pk.IsKeyUp(Keys.W) && Keyboard.GetState().IsKeyDown(Keys.W))
+            {
+                _mainMenu.Index--;
+                _menuMove.Play();
+            }
+            if (_pk.IsKeyUp(Keys.Space) && Keyboard.GetState().IsKeyDown(Keys.Space))
+            {
+                switch (_mainMenu.Index)
+                {
+                    case 0://Play
+                        _gameState = GameState.Playing;
+                        MediaPlayer.IsRepeating = true;
+                        MediaPlayer.Play(_testMus);
+                        break;
+                    case 1://How to play
+
+                        break;
+                    case 2://Options
+
+                        break;
+                    case 3://Quit
+                        Exit();
+                        break;
+
+                }
             }
 #endif
-            //Check let go
-            if (Input.GetButtonUp(1, Input.ArcadeButtons.A1))
+            if (Input.GetButtonDown(1, Input.ArcadeButtons.StickDown))
             {
-                _player.Velocity = _player.DirectionVector * 10000f;
+                _mainMenu.Index++;
+
             }
-#if DEBUG
-            if (Keyboard.GetState().IsKeyUp(Keys.Space) && _pk.IsKeyDown(Keys.Space))
+            if (Input.GetButtonDown(1, Input.ArcadeButtons.StickUp))
             {
-                _player.Velocity = _player.DirectionVector * 10000f;
+                _mainMenu.Index--;
             }
-#endif
-            //Default zoom to
-            _cam.ZoomToWorldPoint(_player.Position, _defaultZoom, 0.1f, _xBounds);
-
-            //bounce off screen edge
-            if (_player.Position.X < _xBounds.X)
+            if (Input.GetButtonDown(1, Input.ArcadeButtons.A1))
             {
-                _player.Velocity = new Vector2(MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+                switch (_mainMenu.Index)
+                {
+                    case 0://Play
+                        _gameState = GameState.Playing;
+                        break;
+                    case 1://How to play
+
+                        break;
+                    case 2://Options
+
+                        break;
+                    case 3://Quit
+                        Exit();
+                        break;
+
+                }
             }
-            else if (_player.Position.X > _xBounds.Y)
-            {
-                _player.Velocity = new Vector2(-MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
-            }
 
 
-            //Update physics manager
-            _physMan.Update(gameTime, targetGameSpeed, 0.1f);
-
-
-
-            _player.Update();
-
-
-
-            _objMan.Update(
-                _player,
-                _cam.BoundingRectangle);
 
 
 #if DEBUG
             _pk = Keyboard.GetState();
 #endif
-            DebugLog.Instance.LogFrame(_player.Position.X.ToString("0000") + ", " + _player.Position.Y.ToString("0000"));
-
         }
 
         public void DrawMenu(GameTime gameTime)
@@ -406,7 +420,10 @@ namespace Whitespace.App
             Matrix transformation = _cam.GetViewMatrix();
             _spriteBatch.Begin(blendState: BlendState.AlphaBlend, transformMatrix: transformation);
 
-            
+            //Draw background of canvas
+            _spriteBatch.Draw(_squareTexture, _cam.BoundingRectangle.ToRectangle(), Color.White);
+
+            _mainMenu.Draw(_spriteBatch, gameTime);
 
 
             _spriteBatch.End();

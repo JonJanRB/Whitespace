@@ -79,9 +79,8 @@ namespace Whitespace.App
 
         public void Destroy(Vector2 velocity)
         {
-            
-            //_destroyedParticles = 
-            //    CreateDestructionEmitter(velocity, _particleTexture, Tint);
+
+            _destroyedParticles.Position = Position;
             foreach(var emitter in _destroyedParticles.Emitters)
             {
                 emitter.Profile = Profile.Spray(velocity, 2f);
