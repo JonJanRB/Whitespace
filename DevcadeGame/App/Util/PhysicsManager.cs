@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +47,7 @@ namespace Whitespace.App.Util
 
         public void Update(GameTime gameTime, float targetGameSpeed, float easing)
         {
-            ElapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            ElapsedTime = gameTime.GetElapsedSeconds();
             GameSpeed += (targetGameSpeed - GameSpeed) * easing;
             TimeSpeed = GameSpeed * ElapsedTime;
         }

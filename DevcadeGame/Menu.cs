@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,9 +29,11 @@ namespace Whitespace
                 _currentColor = initialColor;
             }
 
-            public void Draw(SpriteBatch sb, Vector2 pos, SpriteFont font, Vector2 scale, Color color)
+            public void Draw(SpriteBatch sb, GameTime gt, 
+                Vector2 pos, SpriteFont font, Vector2 scale,
+                float spacing, Color color)
             {
-                _currentScale += (_currentScale - scale) * 0.2f;
+                _currentScale += (_currentScale - scale) * 0.2f * gt.GetElapsedSeconds();
                 _currentColor = new Color(
                     _currentColor.ToVector4() + 
                     (_currentColor.ToVector4() - color.ToVector4()) * 0.2f);
@@ -40,7 +43,8 @@ namespace Whitespace
             }
         }
 
-        private MenuPage _mainPage;
+        private MenuPage CurrentPage { get => _menuPages.Peek(); }
+        private Stack<MenuPage> _menuPages;
         public SpriteFont Font { get; set; }
         public float Spacing { get; set; }
         public Vector2 InactiveScale { get; set; }
@@ -48,5 +52,22 @@ namespace Whitespace
         public Color InactiveColor { get; set; }
         public Color HoverColor { get; set; }
 
+        public void Update(GameTime gt)
+        {
+
+        }
+
+        public void Draw(SpriteBatch sb, GameTime gt, Vector2 position)
+        {
+            //_mainPage.Draw(sb, gt, position, font, )
+        }
+
+        /// <summary>
+        /// Return to previous page
+        /// </summary>
+        public void Back()
+        {
+            _menuPages.Pop();
+        }
     }
 }
