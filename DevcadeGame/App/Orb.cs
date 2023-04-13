@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Timers;
+using Whitespace.App.Util;
 
 namespace Whitespace.App
 {
@@ -21,6 +22,13 @@ namespace Whitespace.App
         private ParticleEffect _destroyedParticles;
 
         private ParticleEffect _idleParticles;
+
+        public Orb() : 
+            this(ObjectManager.OrbTexture, ObjectManager.OrbDestroyParticle, ObjectManager.OrbColor)
+        {
+            HitboxRadius = 100f;
+            Scale = new Vector2(100f);
+        }
 
         public Orb(Texture2D texture, Texture2D particleTexture, Color tint) : base(texture)
         {
@@ -98,6 +106,12 @@ namespace Whitespace.App
             spriteBatch.Draw(_destroyedParticles);
         }
 
+        public override void DrawHitbox(SpriteBatch spriteBatch)
+        {
+            if (Enabled == true)
+                base.DrawHitbox(spriteBatch);
+            
+        }
 
     }
 }

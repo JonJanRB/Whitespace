@@ -31,6 +31,8 @@ namespace Whitespace.App
         /// </summary>
         public Vector2 DirectionVector { get; private set; }
 
+        public uint Flings { get; set; }
+
         public Player(Texture2D texture) : base(texture) { }
 
         /// <summary>
