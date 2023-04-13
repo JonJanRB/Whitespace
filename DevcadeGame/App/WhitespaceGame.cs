@@ -18,6 +18,18 @@ using System.Linq;
 
 namespace Whitespace.App
 {
+    public enum GameState
+    {
+        Menu,
+        Playing
+    }
+
+    public enum MenuState
+    {
+        Main,
+        Tutorial
+    }
+
     public class WhitespaceGame : Game
     {
         /// <summary>
@@ -49,6 +61,10 @@ namespace Whitespace.App
         //Managers
         private PhysicsManager _physMan;
         private ObjectManager _objMan;
+
+        //FSM
+        private GameState _gameState;
+
 
 #if DEBUG
         private KeyboardState _pk;
@@ -85,6 +101,8 @@ namespace Whitespace.App
 
 
             _bg = new Color(0.1f, 0.1f, 0.1f);
+
+            _gameState = GameState.Menu;
 
             ////
             base.Initialize();
@@ -147,11 +165,9 @@ namespace Whitespace.App
 
         protected override void Update(GameTime gameTime)
         {
-            KeyboardState ks = Keyboard.GetState();
-
             Input.Update(); // Updates the state of the input library
             //Emergency Exit
-            if (ks.IsKeyDown(Keys.Escape) ||
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape) ||
                 Input.GetButton(1, Input.ArcadeButtons.Menu) &&
                 Input.GetButton(2, Input.ArcadeButtons.Menu))
             {
@@ -159,84 +175,16 @@ namespace Whitespace.App
             }
             ////
 
-            //Direction of movement
-            Vector2 stickDirection = Input.GetStick(1);
-#if DEBUG
-            stickDirection = GetKeyboardStickDirection();
-#endif
-            stickDirection.Normalize();
-            //Set target direction only if in a nuetral position
-            if (!stickDirection.IsNaN())
+            switch(_gameState)
             {
-                _player.TargetDirection = stickDirection.ToAngle() - MathHelper.PiOver2;
+                case GameState.Menu:
+
+                    break;
+                case GameState.Playing:
+                    UpdateGame(gameTime);
+                    break;
             }
-            else
-            {
-                _player.TargetDirection = _player.Direction;
-            }
-
-            //Change game speed based on button press
-            float targetGameSpeed = 1f;
-            if(Input.GetButton(1, Input.ArcadeButtons.A1))
-            {
-                targetGameSpeed = 0.02f;
-                _cam.ZoomToWorldPoint(
-                    _player.Position + _player.DirectionVector * 1000f,
-                    _defaultZoom * 2f, 0.1f, _xBounds);
-            }
-#if DEBUG
-            if(ks.IsKeyDown(Keys.Space))
-            {
-                targetGameSpeed = 0.02f;
-                _cam.ZoomToWorldPoint(
-                    _player.Position + _player.DirectionVector * 1000f,
-                    _defaultZoom * 2f, 0.1f, _xBounds);
-            }
-#endif
-            //Check let go
-            if (Input.GetButtonUp(1, Input.ArcadeButtons.A1))
-            {
-                _player.Velocity = _player.DirectionVector * 10000f;
-            }
-#if DEBUG
-            if (ks.IsKeyUp(Keys.Space) && _pk.IsKeyDown(Keys.Space))
-            {
-                _player.Velocity = _player.DirectionVector * 10000f;
-            }
-#endif
-            //Default zoom to
-            _cam.ZoomToWorldPoint(_player.Position, _defaultZoom, 0.1f, _xBounds);
-
-            //bounce off screen edge
-            if(_player.Position.X < _xBounds.X)
-            {
-                _player.Velocity = new Vector2(MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
-            }
-            else if(_player.Position.X > _xBounds.Y)
-            {
-                _player.Velocity = new Vector2(-MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
-            }
-
-
-            //Update physics manager
-            _physMan.Update(gameTime, targetGameSpeed, 0.1f);
-
-
-
-            _player.Update();
-
-
-
-            _objMan.Update(
-                _player,
-                new RectangleF(_xBounds.X, _yBounds.X, _xBounds.Y-_xBounds.X, _yBounds.Y - _yBounds.X));
-
-
-#if DEBUG
-            _pk = ks;
-#endif
-            DebugLog.Instance.LogFrame(_player.Position.X.ToString("0000")+", "+ _player.Position.Y.ToString("0000"));
-
+            
             ////
             base.Update(gameTime);
         }
@@ -245,30 +193,16 @@ namespace Whitespace.App
         {
             GraphicsDevice.Clear(Color.Black);
             ////
-            
-            //Camera matrix
-            Matrix transformation = _cam.GetViewMatrix();
-            _spriteBatch.Begin(blendState: BlendState.AlphaBlend, transformMatrix: transformation);
 
-            //Draw background of canvas
-            _spriteBatch.Draw(_squareTexture, _cam.BoundingRectangle.ToRectangle(), _bg);
+            switch (_gameState)
+            {
+                case GameState.Menu:
 
-            _objMan.Draw(_spriteBatch);
-            _objMan.DrawHitboxes(_spriteBatch);
-
-            _player.Draw(_spriteBatch);
-            _player.DrawHitbox(_spriteBatch);
-             
-
-            _spriteBatch.End();
-
-            //Draw debug log
-            _spriteBatch.Begin();
-            DebugLog.Instance.Draw(
-                _spriteBatch,
-                _graphics.PreferredBackBufferWidth,
-                _graphics.PreferredBackBufferHeight);
-            _spriteBatch.End();
+                    break;
+                case GameState.Playing:
+                    DrawGame(gameTime);
+                    break;
+            }
 
             ////
             base.Draw(gameTime);
@@ -288,7 +222,194 @@ namespace Whitespace.App
 
 #endif
 
-        
+        //Game states
+        private void UpdateGame(GameTime gameTime)
+        {
+            //Direction of movement
+            Vector2 stickDirection = Input.GetStick(1);
+#if DEBUG
+            stickDirection = GetKeyboardStickDirection();
+#endif
+            stickDirection.Normalize();
+            //Set target direction only if in a nuetral position
+            if (!stickDirection.IsNaN())
+            {
+                _player.TargetDirection = stickDirection.ToAngle() - MathHelper.PiOver2;
+            }
+            else
+            {
+                _player.TargetDirection = _player.Direction;
+            }
 
+            //Change game speed based on button press
+            float targetGameSpeed = 1f;
+            if (Input.GetButton(1, Input.ArcadeButtons.A1))
+            {
+                targetGameSpeed = 0.02f;
+                _cam.ZoomToWorldPoint(
+                    _player.Position + _player.DirectionVector * 1000f,
+                    _defaultZoom * 2f, 0.1f, _xBounds);
+            }
+#if DEBUG
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+            {
+                targetGameSpeed = 0.02f;
+                _cam.ZoomToWorldPoint(
+                    _player.Position + _player.DirectionVector * 1000f,
+                    _defaultZoom * 2f, 0.1f, _xBounds);
+            }
+#endif
+            //Check let go
+            if (Input.GetButtonUp(1, Input.ArcadeButtons.A1))
+            {
+                _player.Velocity = _player.DirectionVector * 10000f;
+            }
+#if DEBUG
+            if (Keyboard.GetState().IsKeyUp(Keys.Space) && _pk.IsKeyDown(Keys.Space))
+            {
+                _player.Velocity = _player.DirectionVector * 10000f;
+            }
+#endif
+            //Default zoom to
+            _cam.ZoomToWorldPoint(_player.Position, _defaultZoom, 0.1f, _xBounds);
+
+            //bounce off screen edge
+            if (_player.Position.X < _xBounds.X)
+            {
+                _player.Velocity = new Vector2(MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+            }
+            else if (_player.Position.X > _xBounds.Y)
+            {
+                _player.Velocity = new Vector2(-MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+            }
+
+
+            //Update physics manager
+            _physMan.Update(gameTime, targetGameSpeed, 0.1f);
+
+
+
+            _player.Update();
+
+
+
+            _objMan.Update(
+                _player,
+                _cam.BoundingRectangle);
+
+
+#if DEBUG
+            _pk = Keyboard.GetState();
+#endif
+            DebugLog.Instance.LogFrame(_player.Position.X.ToString("0000") + ", " + _player.Position.Y.ToString("0000"));
+
+        }
+
+        public void DrawGame(GameTime gameTime)
+        {
+            //Camera matrix
+            Matrix transformation = _cam.GetViewMatrix();
+            _spriteBatch.Begin(blendState: BlendState.AlphaBlend, transformMatrix: transformation);
+
+            //Draw background of canvas
+            _spriteBatch.Draw(_squareTexture, _cam.BoundingRectangle.ToRectangle(), _bg);
+
+            _objMan.Draw(_spriteBatch);
+            _objMan.DrawHitboxes(_spriteBatch);
+
+            _player.Draw(_spriteBatch);
+            _player.DrawHitbox(_spriteBatch);
+
+
+            _spriteBatch.End();
+
+            //Draw debug log
+            _spriteBatch.Begin();
+            DebugLog.Instance.Draw(
+                _spriteBatch,
+                _graphics.PreferredBackBufferWidth,
+                _graphics.PreferredBackBufferHeight);
+            _spriteBatch.End();
+        }
+
+        private void UpdateMenu(GameTime gameTime)
+        {
+            
+
+            //Change game speed based on button press
+            float targetGameSpeed = 1f;
+            if (Input.GetButton(1, Input.ArcadeButtons.A1))
+            {
+                targetGameSpeed = 0.02f;
+                _cam.ZoomToWorldPoint(
+                    _player.Position + _player.DirectionVector * 1000f,
+                    _defaultZoom * 2f, 0.1f, _xBounds);
+            }
+#if DEBUG
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+            {
+                targetGameSpeed = 0.02f;
+                _cam.ZoomToWorldPoint(
+                    _player.Position + _player.DirectionVector * 1000f,
+                    _defaultZoom * 2f, 0.1f, _xBounds);
+            }
+#endif
+            //Check let go
+            if (Input.GetButtonUp(1, Input.ArcadeButtons.A1))
+            {
+                _player.Velocity = _player.DirectionVector * 10000f;
+            }
+#if DEBUG
+            if (Keyboard.GetState().IsKeyUp(Keys.Space) && _pk.IsKeyDown(Keys.Space))
+            {
+                _player.Velocity = _player.DirectionVector * 10000f;
+            }
+#endif
+            //Default zoom to
+            _cam.ZoomToWorldPoint(_player.Position, _defaultZoom, 0.1f, _xBounds);
+
+            //bounce off screen edge
+            if (_player.Position.X < _xBounds.X)
+            {
+                _player.Velocity = new Vector2(MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+            }
+            else if (_player.Position.X > _xBounds.Y)
+            {
+                _player.Velocity = new Vector2(-MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+            }
+
+
+            //Update physics manager
+            _physMan.Update(gameTime, targetGameSpeed, 0.1f);
+
+
+
+            _player.Update();
+
+
+
+            _objMan.Update(
+                _player,
+                _cam.BoundingRectangle);
+
+
+#if DEBUG
+            _pk = Keyboard.GetState();
+#endif
+            DebugLog.Instance.LogFrame(_player.Position.X.ToString("0000") + ", " + _player.Position.Y.ToString("0000"));
+
+        }
+
+        public void DrawMenu(GameTime gameTime)
+        {
+            //Camera matrix
+            Matrix transformation = _cam.GetViewMatrix();
+            _spriteBatch.Begin(blendState: BlendState.AlphaBlend, transformMatrix: transformation);
+
+            
+
+
+            _spriteBatch.End();
+        }
     }
 }
