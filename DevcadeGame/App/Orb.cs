@@ -35,7 +35,7 @@ namespace Whitespace.App
                         AutoTrigger = false,
                         Parameters = new ParticleReleaseParameters()
                         {
-                            Speed = new(1000f, 2000f),
+                            Speed = new(1000f, 10000f),
                             Rotation = new (0f, 2f),
                         },
                         Modifiers =
@@ -46,7 +46,7 @@ namespace Whitespace.App
                                 {
                                     new ScaleInterpolator()
                                     {
-                                        StartValue = new Vector2(1000f),
+                                        StartValue = new Vector2(100f),
                                         EndValue = Vector2.Zero
                                     }
                                 }
@@ -55,7 +55,7 @@ namespace Whitespace.App
                             new LinearGravityModifier()
                             {
                                 Direction = Vector2.UnitY,
-                                Strength = 100f
+                                Strength = 10000f
                             },
 
 

@@ -137,7 +137,7 @@ namespace Whitespace.App
                 new Orb(_circleTexture, _squareTexture)
                 {
                     HitboxRadius = 70f,
-                    Tint = Color.Green,
+                    Tint = Color.Lime,
                     Scale = new Vector2(100f),
                     Position = new Vector2((_xBounds.Y + _xBounds.X) * 0.5f)
                 }
@@ -268,15 +268,15 @@ namespace Whitespace.App
             foreach(PhysicsObject orb in _orbs)
             {
                 orb.Draw(_spriteBatch);
-                orb.DrawHitbox(_spriteBatch);
+                //orb.DrawHitbox(_spriteBatch);
             }
 
 
             _player.Draw(_spriteBatch);
-            _player.DrawHitbox(_spriteBatch);
+            //_player.DrawHitbox(_spriteBatch);
 
             _test.Draw(_spriteBatch);
-            _test.DrawHitbox(_spriteBatch);
+            //_test.DrawHitbox(_spriteBatch);
 
             _spriteBatch.End();
 
