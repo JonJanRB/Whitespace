@@ -43,7 +43,6 @@ namespace Whitespace.App
 
         //Physics objects
         private Player _player;
-        private PhysicsObject _test;
 
         private List<Orb> _orbs;
 
@@ -124,20 +123,12 @@ namespace Whitespace.App
                 Scale = new Vector2(100f),
             };
 
-            _test = new PhysicsObject(_triangleTexture)
-            {
-                HitboxRadius = 100f,
-                Tint = Color.Red,
-                Scale = new Vector2(100f),
-                Position = new Vector2(100f)
-            };
 
             _orbs = new List<Orb>
             {
-                new Orb(_circleTexture, _squareTexture)
+                new Orb(_circleTexture, _squareTexture, Color.Lime)
                 {
                     HitboxRadius = 70f,
-                    Tint = Color.Lime,
                     Scale = new Vector2(100f),
                     Position = new Vector2((_xBounds.Y + _xBounds.X) * 0.5f)
                 }
@@ -224,25 +215,19 @@ namespace Whitespace.App
             _player.Update();
 
 
-            //_test.MomentOfAcceleration = new Vector2(50f);
-            _test.Update();
 
-            foreach(PhysicsObject orb in _orbs)
+            foreach(Orb orb in _orbs)
             {
                 if(_player.Intersects(orb.Collider))
                 {
                     _player.Velocity =
                         new Vector2(-_player.Velocity.X,
                         -MathF.Abs(_player.Velocity.Y) + -1000f);
-                    
+                    orb.Destroy();
                 }
                 orb.Update();
             }
 
-            if(ks.IsKeyUp(Keys.E) && _pk.IsKeyDown(Keys.E))
-            {
-                _orbs[0].Destroy();
-            }
 
 #if DEBUG
             _pk = ks;
@@ -274,9 +259,7 @@ namespace Whitespace.App
 
             _player.Draw(_spriteBatch);
             //_player.DrawHitbox(_spriteBatch);
-
-            _test.Draw(_spriteBatch);
-            //_test.DrawHitbox(_spriteBatch);
+             
 
             _spriteBatch.End();
 

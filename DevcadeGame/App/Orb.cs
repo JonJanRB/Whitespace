@@ -22,21 +22,24 @@ namespace Whitespace.App
 
         private ParticleEffect _idleParticles;
 
-        public Orb(Texture2D texture, Texture2D particleTexture) : base(texture)
+        public Orb(Texture2D texture, Texture2D particleTexture, Color tint) : base(texture)
         {
+            Tint = tint;
             _destroyedParticles = new ParticleEffect(autoTrigger: false)
             {
                 Emitters = new List<ParticleEmitter>
                 {
                     new ParticleEmitter(
                         new TextureRegion2D(particleTexture),
-                        500, TimeSpan.FromSeconds(0.5d), Profile.Point())
+                        5, TimeSpan.FromSeconds(0.5d), Profile.Point())
                     {
                         AutoTrigger = false,
                         Parameters = new ParticleReleaseParameters()
                         {
-                            Speed = new(1000f, 10000f),
-                            Rotation = new (0f, 2f),
+                            Speed = new(500f, 1000f),
+                            Rotation = new (0f, MathHelper.TwoPi),
+                            Opacity = 1f,
+                            Color = tint.ToHsl()
                         },
                         Modifiers =
                         {
@@ -70,8 +73,11 @@ namespace Whitespace.App
 
         public void Destroy()
         {
-            _destroyedParticles.Position = Mouse.GetState().Position.ToVector2();
-            _destroyedParticles.Trigger();
+            _destroyedParticles.Position = Position;
+            for (int i = 0; i < 5; i++)
+            {
+                _destroyedParticles.Trigger();
+            }
         }
 
         public override void Update(float timeSpeed)
