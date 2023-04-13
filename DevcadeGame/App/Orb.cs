@@ -36,7 +36,7 @@ namespace Whitespace.App
                         AutoTrigger = false,
                         Parameters = new ParticleReleaseParameters()
                         {
-                            Speed = new(500f, 1000f),
+                            Speed = new(5000f, 10000f),
                             Rotation = new (0f, MathHelper.TwoPi),
                             Opacity = 1f,
                             Color = tint.ToHsl()
@@ -63,21 +63,26 @@ namespace Whitespace.App
 
 
                         },
-                        
+
                     }
                 }
             };
-
-
         }
 
-        public void Destroy()
+        public void Destroy(Vector2 velocity)
         {
-            _destroyedParticles.Position = Position;
+            
+            //_destroyedParticles = 
+            //    CreateDestructionEmitter(velocity, _particleTexture, Tint);
+            foreach(var emitter in _destroyedParticles.Emitters)
+            {
+                emitter.Profile = Profile.Spray(velocity, 2f);
+            }
             for (int i = 0; i < 5; i++)
             {
                 _destroyedParticles.Trigger();
             }
+            Enabled = false;
         }
 
         public override void Update(float timeSpeed)
@@ -88,8 +93,11 @@ namespace Whitespace.App
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            base.Draw(spriteBatch);
+            if(Enabled == true)
+                base.Draw(spriteBatch);
             spriteBatch.Draw(_destroyedParticles);
         }
+
+
     }
 }

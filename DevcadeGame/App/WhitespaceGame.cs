@@ -121,6 +121,7 @@ namespace Whitespace.App
                 HitboxRadius = 100f,
                 Tint = Color.Blue,
                 Scale = new Vector2(100f),
+                Position = new Vector2((_xBounds.Y + _xBounds.X) * 0.5f, -1000f)
             };
 
 
@@ -130,7 +131,8 @@ namespace Whitespace.App
                 {
                     HitboxRadius = 70f,
                     Scale = new Vector2(100f),
-                    Position = new Vector2((_xBounds.Y + _xBounds.X) * 0.5f)
+                    Position = new Vector2((_xBounds.Y + _xBounds.X) * 0.5f),
+                    Enabled = true
                 }
             };
         }
@@ -220,10 +222,10 @@ namespace Whitespace.App
             {
                 if(_player.Intersects(orb.Collider))
                 {
+                    orb.Destroy(_player.Velocity);
                     _player.Velocity =
                         new Vector2(-_player.Velocity.X,
                         -MathF.Abs(_player.Velocity.Y) + -1000f);
-                    orb.Destroy();
                 }
                 orb.Update();
             }
