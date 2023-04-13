@@ -45,7 +45,7 @@ namespace Whitespace.App
         private Player _player;
         private PhysicsObject _test;
 
-        private List<PhysicsObject> _orbs;
+        private List<Orb> _orbs;
 
 #if DEBUG
         private KeyboardState _pk;
@@ -132,9 +132,9 @@ namespace Whitespace.App
                 Position = new Vector2(100f)
             };
 
-            _orbs = new List<PhysicsObject>
+            _orbs = new List<Orb>
             {
-                new PhysicsObject(_circleTexture)
+                new Orb(_circleTexture, _squareTexture)
                 {
                     HitboxRadius = 70f,
                     Tint = Color.Green,
@@ -239,7 +239,10 @@ namespace Whitespace.App
                 orb.Update();
             }
 
-
+            if(ks.IsKeyUp(Keys.E) && _pk.IsKeyDown(Keys.E))
+            {
+                _orbs[0].Destroy();
+            }
 
 #if DEBUG
             _pk = ks;
