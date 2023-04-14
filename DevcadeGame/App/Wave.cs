@@ -28,9 +28,13 @@ namespace Whitespace.App
 
         private RectangleF _destination;
 
+        public float Top => _destination.Top;
+
         private float _farthestHeight;
 
         private float _speed;
+
+        private float _startingY;
 
         public Wave(Texture2D texture, RectangleF boundingRect)
         {
@@ -40,7 +44,9 @@ namespace Whitespace.App
             _destination.Height = boundingRect.Height * 10f;
             _destination.Width = boundingRect.Width * 1.1f;
             _destination.X -= (_destination.Width - boundingRect.Width) * 0.5f;
+            _startingY = _destination.Y;
             _farthestHeight = boundingRect.Height;
+            _speed = 1000f;
         }
 
         public void Update(Player player)
@@ -66,6 +72,11 @@ namespace Whitespace.App
         public void Draw(SpriteBatch sb)
         {
             sb.Draw(_texture, _destination.ToRectangle(), Color.White);
+        }
+
+        public void Reset()
+        {
+            _destination.Y = _startingY;
         }
     }
 }

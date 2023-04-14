@@ -43,6 +43,7 @@ namespace Whitespace.App
         private Texture2D _squareTexture;
         private Texture2D _circleTexture;
         private Texture2D _triangleTexture;
+        private Texture2D _arrowTexture;
         private SpriteFont _lightFont;
         private SpriteFont _boldFont;
 
@@ -62,7 +63,7 @@ namespace Whitespace.App
         private GameState _gameState;
 
         private Menu _mainMenu;
-
+        private float _menuLerp;
 
         //Wav
         private Wave _wave;
@@ -146,6 +147,7 @@ namespace Whitespace.App
 
             _circleTexture = Content.Load<Texture2D>("Filled Circle");
             _triangleTexture = Content.Load<Texture2D>("Filled Triangle");
+            _arrowTexture = Content.Load<Texture2D>("Arrow");
 
             _lightFont = Content.Load<SpriteFont>("Comfortaa200");
             _boldFont = Content.Load<SpriteFont>("Comfortaa200Bold");
@@ -153,12 +155,12 @@ namespace Whitespace.App
             DebugLog.Instance.Font = _lightFont;
             DebugLog.Instance.Scale = 0.1f;
 
-            _player = new Player(_squareTexture)
+            _player = new Player(_squareTexture, _arrowTexture)
             {
                 HitboxRadius = 50f,
                 Tint = Color.Blue,
                 Scale = new Vector2(100f),
-                Position = new Vector2((_xBounds.Y + _xBounds.X) * 0.5f, -1000f)
+                Position = Vector2.Zero
             };
 
             //Object manager
@@ -166,7 +168,7 @@ namespace Whitespace.App
             ObjectManager.OrbDestroyParticle = _squareTexture;
             ObjectManager.OrbColor = Color.Lime;
             ObjectManager.SpikeTexture = _triangleTexture;
-            ObjectManager.SpikeDestroyParticle = _squareTexture;
+            ObjectManager.SpikeDestroyParticle = _triangleTexture;
             ObjectManager.SpikeColor = Color.OrangeRed;
 
             ObjectManager.Initialize(_cam.BoundingRectangle);
@@ -202,6 +204,9 @@ namespace Whitespace.App
                     break;
             }
 
+            //DEBUG
+            //DebugLog.Instance.LogFrame(_objMan.Spikes[0].Scale, Color.Red);
+
             ////
 #if DEBUG
             _pk = Keyboard.GetState();
@@ -224,6 +229,14 @@ namespace Whitespace.App
                     break;
             }
 
+            //Draw debug log
+            _spriteBatch.Begin();
+            DebugLog.Instance.Draw(
+                _spriteBatch,
+                _graphics.PreferredBackBufferWidth,
+                _graphics.PreferredBackBufferHeight);
+            _spriteBatch.End();
+
             ////
             base.Draw(gameTime);
         }
@@ -232,59 +245,81 @@ namespace Whitespace.App
         //Game states
         private void UpdateGame(GameTime gameTime)
         {
-            //Direction of movement
-            Vector2 stickDirection = GetStickDirection();
-            stickDirection.Normalize();
-            //Set target direction only if in a nuetral position
-            if (!stickDirection.IsNaN())
+            if(_player.IsAlive)
             {
-                _player.TargetDirection = stickDirection.ToAngle() - MathHelper.PiOver2;
+                //Direction of movement
+                Vector2 stickDirection = GetStickDirection();
+                stickDirection.Normalize();
+                //Set target direction only if in a nuetral position
+                if (!stickDirection.IsNaN())
+                {
+                    _player.TargetDirection = stickDirection.ToAngle() - MathHelper.PiOver2;
+                }
+                else
+                {
+                    _player.TargetDirection = _player.Direction;
+                }
+
+                //Change game speed based on button press
+                float targetGameSpeed = 1f;
+                if (ButtonJustPressed())
+                {
+                    SoundManager.TimeStop.Play();
+                }
+                if (ButtonPressed())
+                {
+                    targetGameSpeed = 0.02f;
+                    _cam.ZoomToWorldPoint(
+                        _player.Position + _player.DirectionVector * 3000f,
+                        _defaultZoom * 1.5f, 0.1f, _xBounds);
+                    _player.TargetArrowScale = 250f;
+                }
+                //Check let go
+                if (ButtonJustReleased())
+                {
+                    _player.Velocity = _player.DirectionVector * 10000f;
+                    SoundManager.Fling.Play();
+                    _player.TargetArrowScale = 0f;
+                }
+                
+
+
+                //bounce off screen edge
+                if (_player.Position.X < _xBounds.X)
+                {
+                    _player.Velocity = new Vector2(MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+                    SoundManager.MenuBack.Play();
+                }
+                else if (_player.Position.X > _xBounds.Y)
+                {
+                    _player.Velocity = new Vector2(-MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+                    SoundManager.MenuBack.Play();
+                }
+
+
+                //Update physics manager
+                _physMan.Update(gameTime, targetGameSpeed, 0.1f);
+
+
+
+                
             }
-            else
+            else//If DEAD
             {
-                _player.TargetDirection = _player.Direction;
+                //Update physics manager to stop time completely
+                _physMan.Update(gameTime, 1f, 1f);
+                //Stop horizontsal movement
+                _player.Velocity = new Vector2(0f, _player.Velocity.Y);
+
+                //Check if far enough under
+                if(_cam.BoundingRectangle.Top > _wave.Top)
+                {
+                    TransitionToMenu();
+                }
             }
 
-            //Change game speed based on button press
-            float targetGameSpeed = 1f;
-            if(ButtonJustPressed())
-            {
-                SoundManager.TimeStop.Play();
-            }
-            if(ButtonPressed())
-            {
-                targetGameSpeed = 0.02f;
-                _cam.ZoomToWorldPoint(
-                    _player.Position + _player.DirectionVector * 1000f,
-                    _defaultZoom * 2f, 0.1f, _xBounds);
-            }
-            //Check let go
-            if(ButtonJustReleased())
-            {
-                _player.Velocity = _player.DirectionVector * 10000f;
-                SoundManager.Fling.Play();
-            }
             //Default zoom to
             _cam.ZoomToWorldPoint(_player.Position, _defaultZoom, 0.1f, _xBounds);
-
-
-            //bounce off screen edge
-            if (_player.Position.X < _xBounds.X)
-            {
-                _player.Velocity = new Vector2(MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
-                SoundManager.MenuBack.Play();
-            }
-            else if (_player.Position.X > _xBounds.Y)
-            {
-                _player.Velocity = new Vector2(-MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
-                SoundManager.MenuBack.Play();
-            }
-
-
-            //Update physics manager
-            _physMan.Update(gameTime, targetGameSpeed, 0.1f);
-
-
 
             _player.Update();
 
@@ -292,13 +327,10 @@ namespace Whitespace.App
             _wave.Update(_player);
 
 
-            _objMan.Update(
-                _player,
-                _cam.BoundingRectangle);
+            _objMan.Update(_player, _wave.Top, _cam.BoundingRectangle);
 
 
-
-            DebugLog.Instance.LogFrame(_player.Position.X.ToString("0000") + ", " + _player.Position.Y.ToString("0000"));
+            //DebugLog.Instance.LogFrame(_player.Position.X.ToString("0000") + ", " + _player.Position.Y.ToString("0000"));
 
         }
 
@@ -315,66 +347,63 @@ namespace Whitespace.App
             //_objMan.DrawHitboxes(_spriteBatch);
 
             _player.Draw(_spriteBatch);
-            _player.DrawHitbox(_spriteBatch);
+            //_player.DrawHitbox(_spriteBatch);
 
 
             _wave.Draw(_spriteBatch);
 
             _spriteBatch.End();
 
-            //Draw debug log
-            _spriteBatch.Begin();
-            DebugLog.Instance.Draw(
-                _spriteBatch,
-                _graphics.PreferredBackBufferWidth,
-                _graphics.PreferredBackBufferHeight);
-            _spriteBatch.End();
+            
         }
 
         private void UpdateMenu(GameTime gameTime)
         {
-            if(!_mainMenu.ShowingSubMenu)
+            if(!_mainMenu.Transitioning)
             {
-                if(StickDownJust())
+                if (!_mainMenu.ShowingSubMenu)
                 {
-                    _mainMenu.Index++;
-                }
-                if(StickUpJust())
-                {
-                    _mainMenu.Index--;
-                }
-                if(ButtonJustPressed())
-                {
-                    SoundManager.MenuSelect.Play();
-                    switch (_mainMenu.Index)
+                    if (StickDownJust())
                     {
-                        case 0://Play
-                            _gameState = GameState.Playing;
-                            break;
-                        case 1://How to play
-                            _mainMenu.GoToTutorial();
-                            break;
-                        case 2://Credits
-                            _mainMenu.GoToCredits();
-                            break;
-                        case 3://Quit
-                            Exit();
-                            break;
+                        _mainMenu.Index++;
+                    }
+                    if (StickUpJust())
+                    {
+                        _mainMenu.Index--;
+                    }
+                    if (ButtonJustPressed())
+                    {
+                        SoundManager.MenuSelect.Play();
+                        switch (_mainMenu.Index)
+                        {
+                            case 0://Play
+                                ResetGame();
+                                _gameState = GameState.Playing;
+                                break;
+                            case 1://How to play
+                                _mainMenu.GoToTutorial();
+                                break;
+                            case 2://Credits
+                                _mainMenu.GoToCredits();
+                                break;
+                            case 3://Quit
+                                Exit();
+                                break;
 
+                        }
+                    }
+
+                }
+                else//Not the main menu
+                {
+                    if (ButtonJustPressed())
+                    {
+                        _mainMenu.GoToMainMenu();
                     }
                 }
-
-            }
-            else//Not the main menu
-            {
-                if(ButtonJustPressed())
-                {
-                    _mainMenu.GoToMainMenu();
-                }
             }
 
-
-
+            _cam.ZoomToWorldPoint(new Vector2(0f, 300f), _defaultZoom, 0.1f, _xBounds);
 
 #if DEBUG
             _pk = Keyboard.GetState();
@@ -495,5 +524,22 @@ namespace Whitespace.App
                 || Input.GetButtonDown(1, Input.ArcadeButtons.StickUp);
         }
 
+        private void ResetGame()
+        {
+            _player.Position = Vector2.Zero;
+            _player.IsAlive = true;
+            _cam.Zoom = _defaultZoom;
+            _cam.Move(-_cam.Center);
+            _objMan.Reset(_cam.BoundingRectangle);
+            _wave.Reset();
+        }
+
+        private void TransitionToMenu()
+        {
+            _cam.Position = Vector2.Zero;
+            _cam.Zoom = _defaultZoom;
+            _mainMenu.TransitionToMenu();
+            _gameState = GameState.Menu;
+        }
     }
 }

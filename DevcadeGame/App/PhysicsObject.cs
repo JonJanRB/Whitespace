@@ -19,7 +19,7 @@ namespace Whitespace.App
 
         public CircleF Collider => new CircleF(Position.ToPoint(), HitboxRadius);
 
-        public float HitboxRadius { get; set; }
+        public virtual float HitboxRadius { get; set; }
             
         public Color Tint { get; set; }
 

@@ -54,6 +54,8 @@ namespace Whitespace.App
         private bool _drawCredits;
         private bool _drawTutorial;
 
+        public bool Transitioning { get; private set; }
+
         private List<MenuEntry> _entries;
         private List<string> _credits;
         private List<string> _instructions;
@@ -117,6 +119,11 @@ namespace Whitespace.App
         public void Draw(SpriteBatch sb, GameTime gt)
         {
             _position += (_targetPosition - _position) * 5f * gt.GetElapsedSeconds();
+
+            if(_position.Y <= _mainPos.Y + 100f)
+            {
+                Transitioning = false;
+            }
 
             //Title
             Vector2 titleOrigin = _lightFont.MeasureString("Whitespace") * 0.5f;
@@ -186,6 +193,13 @@ namespace Whitespace.App
             }
 
 
+        }
+
+        public void TransitionToMenu()
+        {
+            _position = _mainPos + 2 * _subPos;
+            Transitioning = true;
+            _targetPosition = _mainPos;
         }
 
         public void GoToMainMenu()

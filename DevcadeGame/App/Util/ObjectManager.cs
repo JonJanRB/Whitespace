@@ -15,6 +15,8 @@ namespace Whitespace.App.Util
     /// </summary>
     internal class ObjectManager
     {
+        public static readonly FastRandom RNG = new FastRandom();
+
         #region Singleton Design
 
         /// <summary>
@@ -32,20 +34,13 @@ namespace Whitespace.App.Util
         /// </summary>
         private ObjectManager(RectangleF currentFrame)
         {
-            //Capacity of 30 orbs on screen at once
-            Orbs = new Orb[30];
-            RNG = new FastRandom();
+            //Capacity of objects on screen at once
+            Orbs = new Orb[10];
+            Spikes = new Spike[5];
 
-            for (int i = 0; i < Orbs.Length; i++)
-            {
-                Orbs[i] = new Orb();
-                Orbs[i].Position = new Vector2(
-                    RNG.NextSingle(currentFrame.X, currentFrame.Right),
-                    RNG.NextSingle(currentFrame.Y, currentFrame.Bottom));//Range from top to top+100
-                Orbs[i].Enabled = true;
-            }
+            
 
-            Reset();//Populate objects
+            Reset(currentFrame);//Populate objects
         }
 
         #endregion
@@ -58,12 +53,15 @@ namespace Whitespace.App.Util
         public static Color SpikeColor { get; set; } = Color.OrangeRed;
 
 
-        public FastRandom RNG { get; }
 
         public Orb[] Orbs { get; private set; }
+        public Spike[] Spikes { get; private set; }
 
-        public void Update(Player player, RectangleF currentFrame)
+        public void Update(Player player, float waveTop, RectangleF currentFrame)
         {
+            RectangleF nextFrame = currentFrame;
+            nextFrame.Y -= currentFrame.Height;
+
             foreach (Orb orb in Orbs)
             {
                 if (player.Intersects(orb.Collider) && orb.Enabled)
@@ -74,11 +72,25 @@ namespace Whitespace.App.Util
                         new Vector2(-player.Velocity.X,
                         -MathF.Abs(player.Velocity.Y) + -1000f);
                 }
-                if(orb.Position.Y > currentFrame.Bottom)
+                if(orb.Position.Y > waveTop)
                 {
-                    RefreshObject(orb, currentFrame);
+                    RefreshOrb(orb, nextFrame);
                 }
                 orb.Update();
+            }
+            foreach(Spike spike in Spikes)
+            {
+                if (player.Intersects(spike.Collider) && spike.Enabled)
+                {
+                    spike.Destroy(player.Velocity);
+                    player.Flings--;
+                    player.Velocity = -player.Velocity * 0.5f;
+                }
+                if (spike.Position.Y > waveTop)
+                {
+                    RefreshSpike(spike, nextFrame);
+                }
+                spike.Update();
             }
         }
 
@@ -88,6 +100,10 @@ namespace Whitespace.App.Util
             {
                 orb.Draw(sb);
             }
+            foreach (Spike spike in Spikes)
+            {
+                spike.Draw(sb);
+            }
         }
 
         public void DrawHitboxes(SpriteBatch sb)
@@ -96,25 +112,67 @@ namespace Whitespace.App.Util
             {
                 orb.DrawHitbox(sb);
             }
+            foreach (Spike spike in Spikes)
+            {
+                spike.DrawHitbox(sb);
+            }
         }
 
         /// <summary>
         /// Resets everything
         /// </summary>
-        public void Reset()
+        public void Reset(RectangleF startingFrame)
         {
-            
+            CircleF startingZone = new CircleF(Vector2.Zero, 1000f);
+
+            for (int i = 0; i < Orbs.Length; i++)
+            {
+                //Make sure not inside starting zone
+                Orb tryOrb = new Orb();
+                tryOrb = RefreshOrb(tryOrb, startingFrame);
+                while(tryOrb.Intersects(startingZone))
+                    tryOrb = RefreshOrb(tryOrb, startingFrame);
+                Orbs[i] = tryOrb;
+            }
+
+            for (int i = 0; i < Spikes.Length; i++)
+            {
+                Spike trySpike = new Spike();
+                trySpike = RefreshSpike(trySpike, startingFrame);
+                while (trySpike.Intersects(startingZone))
+                    trySpike = RefreshSpike(trySpike, startingFrame);
+                Spikes[i] = trySpike;
+            }
         }
 
-        public void RefreshObject(PhysicsObject phys, RectangleF currentFrame)
-        {
-            phys.Position =
-                new Vector2(
-                    RNG.NextSingle(currentFrame.X, currentFrame.Right),
-                    RNG.NextSingle(currentFrame.Y - 100f, currentFrame.Y));//Range from top to top+100
-            phys.Enabled = true;
 
-            DebugLog.Instance.LogPersistant("Object refreshed", Color.Purple, 5f);
+        /// <summary>
+        /// random spike val in given frame
+        /// </summary>
+        /// <param name="spike"></param>
+        /// <param name="frame"></param>
+        /// <returns></returns>
+        public Spike RefreshSpike(Spike spike, RectangleF frame)
+        {
+            spike.Position = new Vector2(
+                RNG.NextSingle(frame.X, frame.Right),
+                RNG.NextSingle(frame.Y, frame.Bottom));
+            spike.Scale = new Vector2(RNG.NextSingle(200f, 400f));
+            spike.Rotation = RNG.NextAngle();//That's nice
+            spike.Enabled = true;
+            //DebugLog.Instance.LogPersistant("Spike refreshed", Color.OrangeRed, 5f);
+            return spike;
+        }
+
+        public Orb RefreshOrb(Orb orb, RectangleF frame)
+        {
+            orb.Position = new Vector2(
+                RNG.NextSingle(frame.X, frame.Right),
+                RNG.NextSingle(frame.Y, frame.Bottom));
+            orb.Scale = new Vector2(RNG.NextSingle(75f, 150f));
+            orb.Enabled = true;
+            //DebugLog.Instance.LogPersistant("Orb refreshed", Color.GreenYellow, 5f);
+            return orb;
         }
     }
 }

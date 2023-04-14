@@ -35,7 +35,20 @@ namespace Whitespace.App
 
         public bool IsAlive { get; set; }
 
-        public Player(Texture2D texture) : base(texture) { IsAlive = true; }
+        private Texture2D _arrowTexture;
+        private Vector2 _arrowOrigin;
+        private Vector2 _arrowTextureDownscalse;
+        private float _currentArrowScale;
+        public float TargetArrowScale { get; set; }
+
+        public Player(Texture2D texture, Texture2D arrow) : base(texture)
+        {
+            IsAlive = true;
+            _arrowTexture = arrow;
+            Vector2 textureSize = arrow.Bounds.Size.ToVector2();
+            _arrowTextureDownscalse = new Vector2(1f / textureSize.X, 1f / textureSize.Y);
+            _arrowOrigin = textureSize / 2f;
+        }
 
         /// <summary>
         /// Updates direction vector
@@ -48,6 +61,23 @@ namespace Whitespace.App
             base.Update(timeSpeed);
 
             Direction += MathHelper.WrapAngle(TargetDirection - Direction) * 0.02f;
+            _currentArrowScale += (TargetArrowScale - _currentArrowScale) * 0.4f;
+        }
+
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            base.Draw(spriteBatch);
+            //Arrow
+            spriteBatch.Draw(
+                _arrowTexture,
+                Position + DirectionVector * 1000f,
+                null,
+                Tint * 0.5f,
+                Direction + MathHelper.PiOver2,
+                _arrowOrigin,
+                _arrowTextureDownscalse * _currentArrowScale,
+                SpriteEffects.None,
+                0f);
         }
 
         public override void DrawHitbox(SpriteBatch spriteBatch)
@@ -58,8 +88,11 @@ namespace Whitespace.App
 
         public void GameOver()
         {
-            IsAlive = false;
-            SoundManager.WhitespaceTouch.Play();
+            if(IsAlive)
+            {
+                IsAlive = false;
+                SoundManager.WhitespaceTouch.Play();
+            }
         }
     }
 }

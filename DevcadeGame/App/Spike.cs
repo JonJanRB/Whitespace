@@ -1,37 +1,35 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Particles.Modifiers.Interpolators;
+using MonoGame.Extended.Particles.Modifiers;
+using MonoGame.Extended.Particles.Profiles;
+using MonoGame.Extended.Particles;
+using MonoGame.Extended.TextureAtlases;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MonoGame.Extended.Particles;
-using MonoGame.Extended.TextureAtlases;
-using MonoGame.Extended.Particles.Profiles;
-using MonoGame.Extended.Particles.Modifiers;
-using MonoGame.Extended.Particles.Modifiers.Interpolators;
-using Microsoft.Xna.Framework;
-using MonoGame.Extended;
-using Microsoft.Xna.Framework.Input;
-using MonoGame.Extended.Timers;
 using Whitespace.App.Util;
+using MonoGame.Extended;
 
 namespace Whitespace.App
 {
-    internal class Orb : PhysicsObject
+    internal class Spike : PhysicsObject
     {
         private ParticleEffect _destroyedParticles;
 
         private ParticleEffect _idleParticles;
 
-        public override float HitboxRadius => Scale.X;
+        public override float HitboxRadius => Scale.X * 0.2f;
 
-        public Orb() : 
-            this(ObjectManager.OrbTexture, ObjectManager.OrbDestroyParticle, ObjectManager.OrbColor)
+        public Spike() :
+            this(ObjectManager.SpikeTexture, ObjectManager.SpikeDestroyParticle, ObjectManager.SpikeColor)
         {
             
         }
 
-        public Orb(Texture2D texture, Texture2D particleTexture, Color tint) : base(texture)
+        public Spike(Texture2D texture, Texture2D particleTexture, Color tint) : base(texture)
         {
             Tint = tint;
             _destroyedParticles = new ParticleEffect(autoTrigger: false)
@@ -58,7 +56,7 @@ namespace Whitespace.App
                                 {
                                     new ScaleInterpolator()
                                     {
-                                        StartValue = new Vector2(100f),
+                                        StartValue = new Vector2(0.3f),
                                         EndValue = Vector2.Zero
                                     }
                                 }
@@ -69,7 +67,6 @@ namespace Whitespace.App
                                 Direction = Vector2.UnitY,
                                 Strength = 10000f
                             },
-
 
                         },
 
@@ -82,11 +79,11 @@ namespace Whitespace.App
         {
             SoundManager.OrbDestroy.Play();
             _destroyedParticles.Position = Position;
-            foreach(var emitter in _destroyedParticles.Emitters)
+            foreach (var emitter in _destroyedParticles.Emitters)
             {
                 emitter.Profile = Profile.Spray(velocity, 2f);
             }
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 3; i++)
             {
                 _destroyedParticles.Trigger();
             }
@@ -101,7 +98,7 @@ namespace Whitespace.App
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            if(Enabled == true)
+            if (Enabled == true)
                 base.Draw(spriteBatch);
             spriteBatch.Draw(_destroyedParticles);
         }
@@ -110,8 +107,7 @@ namespace Whitespace.App
         {
             if (Enabled == true)
                 base.DrawHitbox(spriteBatch);
-            
-        }
 
+        }
     }
 }
