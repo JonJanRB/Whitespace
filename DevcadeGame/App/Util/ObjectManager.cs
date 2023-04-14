@@ -67,7 +67,7 @@ namespace Whitespace.App.Util
                 if (player.Intersects(orb.Collider) && orb.Enabled)
                 {
                     orb.Destroy(player.Velocity);
-                    player.Flings++;
+                    player.Flings += 2;
                     player.Velocity =
                         new Vector2(-player.Velocity.X,
                         -MathF.Abs(player.Velocity.Y) + -1000f);

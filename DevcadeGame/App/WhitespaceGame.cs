@@ -68,11 +68,16 @@ namespace Whitespace.App
         //Wav
         private Wave _wave;
 
+        //Begining
+        private bool _newGame;
 
 
-#if DEBUG
+
         private KeyboardState _pk;
-#endif
+
+
+        private double _beginTime;
+
 
         public WhitespaceGame()
         {
@@ -155,7 +160,7 @@ namespace Whitespace.App
             DebugLog.Instance.Font = _lightFont;
             DebugLog.Instance.Scale = 0.1f;
 
-            _player = new Player(_squareTexture, _arrowTexture)
+            _player = new Player(_squareTexture, _arrowTexture, _boldFont)
             {
                 HitboxRadius = 50f,
                 Tint = Color.Blue,
@@ -208,9 +213,9 @@ namespace Whitespace.App
             //DebugLog.Instance.LogFrame(_objMan.Spikes[0].Scale, Color.Red);
 
             ////
-#if DEBUG
+
             _pk = Keyboard.GetState();
-#endif
+
             base.Update(gameTime);
         }
 
@@ -247,27 +252,32 @@ namespace Whitespace.App
         {
             if(_player.IsAlive)
             {
-                //Direction of movement
-                Vector2 stickDirection = GetStickDirection();
-                stickDirection.Normalize();
-                //Set target direction only if in a nuetral position
-                if (!stickDirection.IsNaN())
-                {
-                    _player.TargetDirection = stickDirection.ToAngle() - MathHelper.PiOver2;
-                }
-                else
-                {
-                    _player.TargetDirection = _player.Direction;
-                }
-
                 //Change game speed based on button press
                 float targetGameSpeed = 1f;
-                if (ButtonJustPressed())
+                if (ButtonJustPressed() && !_newGame)
                 {
                     SoundManager.TimeStop.Play();
                 }
                 if (ButtonPressed())
                 {
+                    //Direction of movement
+                    Vector2 stickDirection = GetStickDirection();
+                    stickDirection.Normalize();
+                    //Set target direction only if in a nuetral position
+                    if (!stickDirection.IsNaN())
+                    {
+                        _player.TargetDirection = stickDirection.ToAngle() - MathHelper.PiOver2;
+                    }
+                    else
+                    {
+                        if (!float.IsNaN(_player.TargetDirection))
+                        {
+                            _player.TargetDirection = _player.Direction;
+                            _newGame = false;
+                        }
+                    }
+                    
+
                     targetGameSpeed = 0.02f;
                     _cam.ZoomToWorldPoint(
                         _player.Position + _player.DirectionVector * 3000f,
@@ -277,9 +287,24 @@ namespace Whitespace.App
                 //Check let go
                 if (ButtonJustReleased())
                 {
-                    _player.Velocity = _player.DirectionVector * 10000f;
-                    SoundManager.Fling.Play();
-                    _player.TargetArrowScale = 0f;
+                    //If not new game
+                    if(!_newGame)
+                    {
+                        //If able to fling
+                        if (_player.Flings != 0)
+                        {
+                            _player.Velocity = _player.DirectionVector * 10000f;
+                            SoundManager.Fling.Play();
+                            _player.Flings--;
+
+                        }
+                        else//If not
+                        {
+                            SoundManager.SpikeHit.Play();
+                        }
+                        _player.TargetArrowScale = 0f;
+                    }
+                    
                 }
                 
 
@@ -296,6 +321,10 @@ namespace Whitespace.App
                     SoundManager.MenuBack.Play();
                 }
 
+                if(_newGame)
+                {
+                    targetGameSpeed = 0f;
+                }
 
                 //Update physics manager
                 _physMan.Update(gameTime, targetGameSpeed, 0.1f);
@@ -314,7 +343,7 @@ namespace Whitespace.App
                 //Check if far enough under
                 if(_cam.BoundingRectangle.Top > _wave.Top)
                 {
-                    TransitionToMenu();
+                    TransitionToMenu(gameTime);
                 }
             }
 
@@ -352,6 +381,7 @@ namespace Whitespace.App
 
             _wave.Draw(_spriteBatch);
 
+            
             _spriteBatch.End();
 
             
@@ -377,7 +407,7 @@ namespace Whitespace.App
                         switch (_mainMenu.Index)
                         {
                             case 0://Play
-                                ResetGame();
+                                ResetGame(gameTime);
                                 _gameState = GameState.Playing;
                                 break;
                             case 1://How to play
@@ -405,9 +435,9 @@ namespace Whitespace.App
 
             _cam.ZoomToWorldPoint(new Vector2(0f, 300f), _defaultZoom, 0.1f, _xBounds);
 
-#if DEBUG
-            _pk = Keyboard.GetState();
-#endif
+
+            
+
         }
 
         public void DrawMenu(GameTime gameTime)
@@ -436,7 +466,7 @@ namespace Whitespace.App
                 || Input.GetButtonDown(1, Input.ArcadeButtons.A1)
                 || Input.GetButtonDown(1, Input.ArcadeButtons.A2)
                 || Input.GetButtonDown(1, Input.ArcadeButtons.A3)
-                || Input.GetButtonDown(1, Input.ArcadeButtons.B4)
+                || Input.GetButtonDown(1, Input.ArcadeButtons.A4)
                 || Input.GetButtonDown(1, Input.ArcadeButtons.B1)
                 || Input.GetButtonDown(1, Input.ArcadeButtons.B2)
                 || Input.GetButtonDown(1, Input.ArcadeButtons.B3)
@@ -444,7 +474,7 @@ namespace Whitespace.App
                 || Input.GetButtonDown(2, Input.ArcadeButtons.A1)
                 || Input.GetButtonDown(2, Input.ArcadeButtons.A2)
                 || Input.GetButtonDown(2, Input.ArcadeButtons.A3)
-                || Input.GetButtonDown(2, Input.ArcadeButtons.B4)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.A4)
                 || Input.GetButtonDown(2, Input.ArcadeButtons.B1)
                 || Input.GetButtonDown(2, Input.ArcadeButtons.B2)
                 || Input.GetButtonDown(2, Input.ArcadeButtons.B3)
@@ -458,7 +488,7 @@ namespace Whitespace.App
                 || Input.GetButtonUp(1, Input.ArcadeButtons.A1)
                 || Input.GetButtonUp(1, Input.ArcadeButtons.A2)
                 || Input.GetButtonUp(1, Input.ArcadeButtons.A3)
-                || Input.GetButtonUp(1, Input.ArcadeButtons.B4)
+                || Input.GetButtonUp(1, Input.ArcadeButtons.A4)
                 || Input.GetButtonUp(1, Input.ArcadeButtons.B1)
                 || Input.GetButtonUp(1, Input.ArcadeButtons.B2)
                 || Input.GetButtonUp(1, Input.ArcadeButtons.B3)
@@ -466,7 +496,7 @@ namespace Whitespace.App
                 || Input.GetButtonUp(2, Input.ArcadeButtons.A1)
                 || Input.GetButtonUp(2, Input.ArcadeButtons.A2)
                 || Input.GetButtonUp(2, Input.ArcadeButtons.A3)
-                || Input.GetButtonUp(2, Input.ArcadeButtons.B4)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.A4)
                 || Input.GetButtonUp(2, Input.ArcadeButtons.B1)
                 || Input.GetButtonUp(2, Input.ArcadeButtons.B2)
                 || Input.GetButtonUp(2, Input.ArcadeButtons.B3)
@@ -480,7 +510,7 @@ namespace Whitespace.App
                 || Input.GetButton(1, Input.ArcadeButtons.A1)
                 || Input.GetButton(1, Input.ArcadeButtons.A2)
                 || Input.GetButton(1, Input.ArcadeButtons.A3)
-                || Input.GetButton(1, Input.ArcadeButtons.B4)
+                || Input.GetButton(1, Input.ArcadeButtons.A4)
                 || Input.GetButton(1, Input.ArcadeButtons.B1)
                 || Input.GetButton(1, Input.ArcadeButtons.B2)
                 || Input.GetButton(1, Input.ArcadeButtons.B3)
@@ -488,7 +518,7 @@ namespace Whitespace.App
                 || Input.GetButton(2, Input.ArcadeButtons.A1)
                 || Input.GetButton(2, Input.ArcadeButtons.A2)
                 || Input.GetButton(2, Input.ArcadeButtons.A3)
-                || Input.GetButton(2, Input.ArcadeButtons.B4)
+                || Input.GetButton(2, Input.ArcadeButtons.A4)
                 || Input.GetButton(2, Input.ArcadeButtons.B1)
                 || Input.GetButton(2, Input.ArcadeButtons.B2)
                 || Input.GetButton(2, Input.ArcadeButtons.B3)
@@ -524,22 +554,29 @@ namespace Whitespace.App
                 || Input.GetButtonDown(1, Input.ArcadeButtons.StickUp);
         }
 
-        private void ResetGame()
+        private void ResetGame(GameTime gt)
         {
             _player.Position = Vector2.Zero;
             _player.IsAlive = true;
+            _player.Flings = 5;
+            _player.Velocity = Vector2.Zero;
+            _player.TargetDirection = float.NaN;
+            _player.Direction = MathHelper.PiOver2;//Up
             _cam.Zoom = _defaultZoom;
             _cam.Move(-_cam.Center);
             _objMan.Reset(_cam.BoundingRectangle);
             _wave.Reset();
+            _newGame = true;
+            _beginTime = gt.TotalGameTime.TotalSeconds;
         }
 
-        private void TransitionToMenu()
+        private void TransitionToMenu(GameTime gt)
         {
             _cam.Position = Vector2.Zero;
             _cam.Zoom = _defaultZoom;
             _mainMenu.TransitionToMenu();
             _gameState = GameState.Menu;
+            _mainMenu.Title = "You survived: " + (gt.TotalGameTime.TotalSeconds - _beginTime).ToString(".00") + " seconds";
         }
     }
 }
