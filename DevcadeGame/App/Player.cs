@@ -33,7 +33,9 @@ namespace Whitespace.App
 
         public uint Flings { get; set; }
 
-        public Player(Texture2D texture) : base(texture) { }
+        public bool IsAlive { get; set; }
+
+        public Player(Texture2D texture) : base(texture) { IsAlive = true; }
 
         /// <summary>
         /// Updates direction vector
@@ -52,6 +54,12 @@ namespace Whitespace.App
         {
             base.DrawHitbox(spriteBatch);
             spriteBatch.DrawLine(Position, 1000f, Direction, Color.GreenYellow, 50f);
+        }
+
+        public void GameOver()
+        {
+            IsAlive = false;
+            SoundManager.WhitespaceTouch.Play();
         }
     }
 }

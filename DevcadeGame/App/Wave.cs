@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
+using Whitespace.App.Util;
 
 namespace Whitespace.App
 {
@@ -23,66 +24,48 @@ namespace Whitespace.App
     {
         private ParticleEffect _waveParticles;
 
-        /// <summary>
-        /// The size of this wave
-        /// </summary>
-        public Vector2 Size { get; set; }
+        private Texture2D _texture;
 
-        public Vector2 Position
+        private RectangleF _destination;
+
+        private float _farthestHeight;
+
+        private float _speed;
+
+        public Wave(Texture2D texture, RectangleF boundingRect)
         {
-            get => _waveParticles.Position;
-            set => _waveParticles.Position = value;
+            _texture = texture;
+            _destination = boundingRect;
+            _destination.Offset(0f, boundingRect.Height);
+            _destination.Height = boundingRect.Height * 10f;
+            _destination.Width = boundingRect.Width * 1.1f;
+            _destination.X -= (_destination.Width - boundingRect.Width) * 0.5f;
+            _farthestHeight = boundingRect.Height;
         }
 
-        public Wave(TextureRegion2D texture)
+        public void Update(Player player)
         {
-            //New particle effect
-            _waveParticles = new ParticleEffect()
+            float timeSpeed = PhysicsManager.IN.TimeSpeed;
+
+            //Too high, "speed up"
+            if (player.Position.Y < _destination.Y - _farthestHeight)
             {
-                //Add emitter(s)
-                Emitters =
-                {
-                    new ParticleEmitter(
-                        texture, 200, TimeSpan.FromSeconds(2),
-                        Profile.Line(Vector2.UnitX, Size.X))
-                    {
-                        Parameters =
-                        {
-                            Speed = new Range<float>(0f, 50f),
-                            Quantity = 3,
-                            Rotation = new Range<float>(-1f, 1f),
-                            Scale = new Range<float>(30f, 40f)
-                        },
-                        Modifiers =
-                        {
-                            new AgeModifier
-                            {
-                                Interpolators =
-                                {
-                                    //Fade out based on time
-                                    new OpacityInterpolator
-                                    {
-                                        StartValue = 1f, EndValue = 0f,
-                                    }
-                                }
-                            },
-                            new RotationModifier {RotationRate = -2.1f},
-                            new RectangleContainerModifier {Width = 800, Height = 480},
-                            new LinearGravityModifier {Direction = -Vector2.UnitY, Strength = 30f},
-                        }
-                    }
-                }
-            };
-        }
-
-        public void Update(GameTime gt)
-        {
-            _waveParticles.Update(gt.GetElapsedSeconds());
+                _destination.Y = player.Position.Y + _farthestHeight;
+            }
+            else if(player.Position.Y > _destination.Y)//Ded
+            {
+                player.GameOver();
+            }
+            else
+            {
+                //Move up normally
+                _destination.Y -= _speed * timeSpeed;
+            }
         }
 
         public void Draw(SpriteBatch sb)
         {
-            sb.Draw(_waveParticles);
+            sb.Draw(_texture, _destination.ToRectangle(), Color.White);
         }
     }
 }

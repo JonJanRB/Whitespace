@@ -64,6 +64,10 @@ namespace Whitespace.App
         private Menu _mainMenu;
 
 
+        //Wav
+        private Wave _wave;
+
+
 
 #if DEBUG
         private KeyboardState _pk;
@@ -170,6 +174,9 @@ namespace Whitespace.App
 
             //Menu
             _mainMenu = new Menu(new Vector2(_cam.Center.X, _cam.BoundingRectangle.Y + 800f), _lightFont, _boldFont, 500f, new Vector2(_cam.Center.X, _cam.BoundingRectangle.Bottom));
+
+            //Wave
+            _wave = new Wave(_squareTexture, _cam.BoundingRectangle);
 
         }
 
@@ -282,6 +289,8 @@ namespace Whitespace.App
             _player.Update();
 
 
+            _wave.Update(_player);
+
 
             _objMan.Update(
                 _player,
@@ -308,6 +317,8 @@ namespace Whitespace.App
             _player.Draw(_spriteBatch);
             _player.DrawHitbox(_spriteBatch);
 
+
+            _wave.Draw(_spriteBatch);
 
             _spriteBatch.End();
 
