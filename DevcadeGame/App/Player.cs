@@ -45,7 +45,7 @@ namespace Whitespace.App
 
             base.Update(timeSpeed);
 
-            Direction += MathHelper.WrapAngle(TargetDirection - Direction) * 0.05f;
+            Direction += MathHelper.WrapAngle(TargetDirection - Direction) * 0.02f;
         }
 
         public override void DrawHitbox(SpriteBatch spriteBatch)

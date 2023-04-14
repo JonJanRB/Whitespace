@@ -43,11 +43,11 @@ namespace Whitespace.App
         private Texture2D _squareTexture;
         private Texture2D _circleTexture;
         private Texture2D _triangleTexture;
-        private SpriteFont _font;
+        private SpriteFont _lightFont;
+        private SpriteFont _boldFont;
 
         private Color _bg;
         private Vector2 _xBounds;
-        private Vector2 _yBounds;
         private const float _defaultZoom = 0.1f;
 
         //Physics objects
@@ -64,9 +64,6 @@ namespace Whitespace.App
         private Menu _mainMenu;
 
 
-        //Sounds
-        private SoundEffect _menuMove;
-        private Song _testMus;
 
 #if DEBUG
         private KeyboardState _pk;
@@ -118,6 +115,16 @@ namespace Whitespace.App
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             ////
 
+            //Sound manager
+            SoundManager.MenuSwipe = Content.Load<SoundEffect>("Sound/Swipe");
+            SoundManager.MenuBack = Content.Load<SoundEffect>("Sound/Back");
+            SoundManager.MenuSelect = Content.Load<SoundEffect>("Sound/Select");
+            SoundManager.OrbDestroy = Content.Load<SoundEffect>("Sound/Orb");
+            SoundManager.SpikeHit = Content.Load<SoundEffect>("Sound/Spike");
+            SoundManager.TimeStop = Content.Load<SoundEffect>("Sound/Time");
+            SoundManager.Fling = Content.Load<SoundEffect>("Sound/Fling");
+            SoundManager.WhitespaceTouch = Content.Load<SoundEffect>("Sound/Death");
+
             //Setup camera to work for any window size
             _cam = new OrthographicCamera(
                     new BoxingViewportAdapter(
@@ -127,9 +134,6 @@ namespace Whitespace.App
             _xBounds = new Vector2(
                 _cam.BoundingRectangle.TopLeft.X,
                 _cam.BoundingRectangle.BottomRight.X);
-            _yBounds = new Vector2(
-                _cam.BoundingRectangle.TopLeft.Y,
-                _cam.BoundingRectangle.BottomRight.Y);
 
 
             //1 pixel texture
@@ -139,9 +143,10 @@ namespace Whitespace.App
             _circleTexture = Content.Load<Texture2D>("Filled Circle");
             _triangleTexture = Content.Load<Texture2D>("Filled Triangle");
 
-            _font = Content.Load<SpriteFont>("Comfortaa200");
+            _lightFont = Content.Load<SpriteFont>("Comfortaa200");
+            _boldFont = Content.Load<SpriteFont>("Comfortaa200Bold");
 
-            DebugLog.Instance.Font = _font;
+            DebugLog.Instance.Font = _lightFont;
             DebugLog.Instance.Scale = 0.1f;
 
             _player = new Player(_squareTexture)
@@ -164,11 +169,7 @@ namespace Whitespace.App
             _objMan = ObjectManager.IN;
 
             //Menu
-            _mainMenu = new Menu(new Vector2(_cam.Center.X, _cam.BoundingRectangle.Y + 800f), _font, 500f);
-
-            //Sound
-            _menuMove = Content.Load<SoundEffect>("Whitespace_MenuSelect");
-            _testMus = Content.Load<Song>("Test_quotemusic");   
+            _mainMenu = new Menu(new Vector2(_cam.Center.X, _cam.BoundingRectangle.Y + 800f), _lightFont, _boldFont, 500f, new Vector2(_cam.Center.X, _cam.BoundingRectangle.Bottom));
 
         }
 
@@ -193,8 +194,11 @@ namespace Whitespace.App
                     UpdateGame(gameTime);
                     break;
             }
-            
+
             ////
+#if DEBUG
+            _pk = Keyboard.GetState();
+#endif
             base.Update(gameTime);
         }
 
@@ -217,28 +221,12 @@ namespace Whitespace.App
             base.Draw(gameTime);
         }
 
-#if DEBUG
-
-        private Vector2 GetKeyboardStickDirection()
-        {
-            Vector2 direction = Vector2.Zero;
-            if (Keyboard.GetState().IsKeyDown(Keys.W)) direction.Y -= 1;
-            if (Keyboard.GetState().IsKeyDown(Keys.S)) direction.Y += 1;
-            if (Keyboard.GetState().IsKeyDown(Keys.D)) direction.X += 1;
-            if (Keyboard.GetState().IsKeyDown(Keys.A)) direction.X -= 1;
-            return direction;
-        }
-
-#endif
 
         //Game states
         private void UpdateGame(GameTime gameTime)
         {
             //Direction of movement
-            Vector2 stickDirection = Input.GetStick(1);
-#if DEBUG
-            stickDirection = GetKeyboardStickDirection();
-#endif
+            Vector2 stickDirection = GetStickDirection();
             stickDirection.Normalize();
             //Set target direction only if in a nuetral position
             if (!stickDirection.IsNaN())
@@ -252,44 +240,37 @@ namespace Whitespace.App
 
             //Change game speed based on button press
             float targetGameSpeed = 1f;
-            if (Input.GetButton(1, Input.ArcadeButtons.A1))
+            if(ButtonJustPressed())
+            {
+                SoundManager.TimeStop.Play();
+            }
+            if(ButtonPressed())
             {
                 targetGameSpeed = 0.02f;
                 _cam.ZoomToWorldPoint(
                     _player.Position + _player.DirectionVector * 1000f,
                     _defaultZoom * 2f, 0.1f, _xBounds);
             }
-#if DEBUG
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
-            {
-                targetGameSpeed = 0.02f;
-                _cam.ZoomToWorldPoint(
-                    _player.Position + _player.DirectionVector * 1000f,
-                    _defaultZoom * 2f, 0.1f, _xBounds);
-            }
-#endif
             //Check let go
-            if (Input.GetButtonUp(1, Input.ArcadeButtons.A1))
+            if(ButtonJustReleased())
             {
                 _player.Velocity = _player.DirectionVector * 10000f;
+                SoundManager.Fling.Play();
             }
-#if DEBUG
-            if (Keyboard.GetState().IsKeyUp(Keys.Space) && _pk.IsKeyDown(Keys.Space))
-            {
-                _player.Velocity = _player.DirectionVector * 10000f;
-            }
-#endif
             //Default zoom to
             _cam.ZoomToWorldPoint(_player.Position, _defaultZoom, 0.1f, _xBounds);
+
 
             //bounce off screen edge
             if (_player.Position.X < _xBounds.X)
             {
                 _player.Velocity = new Vector2(MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+                SoundManager.MenuBack.Play();
             }
             else if (_player.Position.X > _xBounds.Y)
             {
                 _player.Velocity = new Vector2(-MathF.Abs(_player.Velocity.X), _player.Velocity.Y);
+                SoundManager.MenuBack.Play();
             }
 
 
@@ -307,9 +288,7 @@ namespace Whitespace.App
                 _cam.BoundingRectangle);
 
 
-#if DEBUG
-            _pk = Keyboard.GetState();
-#endif
+
             DebugLog.Instance.LogFrame(_player.Position.X.ToString("0000") + ", " + _player.Position.Y.ToString("0000"));
 
         }
@@ -343,66 +322,43 @@ namespace Whitespace.App
 
         private void UpdateMenu(GameTime gameTime)
         {
-
-#if DEBUG
-            if (_pk.IsKeyUp(Keys.S) && Keyboard.GetState().IsKeyDown(Keys.S))
+            if(!_mainMenu.ShowingSubMenu)
             {
-                _mainMenu.Index++;
-                _menuMove.Play();
-            }
-            if(_pk.IsKeyUp(Keys.W) && Keyboard.GetState().IsKeyDown(Keys.W))
-            {
-                _mainMenu.Index--;
-                _menuMove.Play();
-            }
-            if (_pk.IsKeyUp(Keys.Space) && Keyboard.GetState().IsKeyDown(Keys.Space))
-            {
-                switch (_mainMenu.Index)
+                if(StickDownJust())
                 {
-                    case 0://Play
-                        _gameState = GameState.Playing;
-                        MediaPlayer.IsRepeating = true;
-                        MediaPlayer.Play(_testMus);
-                        break;
-                    case 1://How to play
-
-                        break;
-                    case 2://Options
-
-                        break;
-                    case 3://Quit
-                        Exit();
-                        break;
-
+                    _mainMenu.Index++;
                 }
-            }
-#endif
-            if (Input.GetButtonDown(1, Input.ArcadeButtons.StickDown))
-            {
-                _mainMenu.Index++;
-
-            }
-            if (Input.GetButtonDown(1, Input.ArcadeButtons.StickUp))
-            {
-                _mainMenu.Index--;
-            }
-            if (Input.GetButtonDown(1, Input.ArcadeButtons.A1))
-            {
-                switch (_mainMenu.Index)
+                if(StickUpJust())
                 {
-                    case 0://Play
-                        _gameState = GameState.Playing;
-                        break;
-                    case 1://How to play
+                    _mainMenu.Index--;
+                }
+                if(ButtonJustPressed())
+                {
+                    SoundManager.MenuSelect.Play();
+                    switch (_mainMenu.Index)
+                    {
+                        case 0://Play
+                            _gameState = GameState.Playing;
+                            break;
+                        case 1://How to play
+                            _mainMenu.GoToTutorial();
+                            break;
+                        case 2://Credits
+                            _mainMenu.GoToCredits();
+                            break;
+                        case 3://Quit
+                            Exit();
+                            break;
 
-                        break;
-                    case 2://Options
+                    }
+                }
 
-                        break;
-                    case 3://Quit
-                        Exit();
-                        break;
-
+            }
+            else//Not the main menu
+            {
+                if(ButtonJustPressed())
+                {
+                    _mainMenu.GoToMainMenu();
                 }
             }
 
@@ -428,5 +384,105 @@ namespace Whitespace.App
 
             _spriteBatch.End();
         }
+
+        /// <summary>
+        /// Im sick of being dumb, who cares if this is less efficient than using the #if DEBUG
+        /// </summary>
+        /// <returns></returns>
+        private bool ButtonJustPressed()
+        {
+            //Called when any button is pressed
+            return (_pk.IsKeyUp(Keys.Space) && Keyboard.GetState().IsKeyDown(Keys.Space))
+                || Input.GetButtonDown(1, Input.ArcadeButtons.A1)
+                || Input.GetButtonDown(1, Input.ArcadeButtons.A2)
+                || Input.GetButtonDown(1, Input.ArcadeButtons.A3)
+                || Input.GetButtonDown(1, Input.ArcadeButtons.B4)
+                || Input.GetButtonDown(1, Input.ArcadeButtons.B1)
+                || Input.GetButtonDown(1, Input.ArcadeButtons.B2)
+                || Input.GetButtonDown(1, Input.ArcadeButtons.B3)
+                || Input.GetButtonDown(1, Input.ArcadeButtons.B4)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.A1)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.A2)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.A3)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.B4)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.B1)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.B2)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.B3)
+                || Input.GetButtonDown(2, Input.ArcadeButtons.B4);
+        }
+
+        private bool ButtonJustReleased()
+        {
+            //Called when any button is pressed
+            return (_pk.IsKeyDown(Keys.Space) && Keyboard.GetState().IsKeyUp(Keys.Space))
+                || Input.GetButtonUp(1, Input.ArcadeButtons.A1)
+                || Input.GetButtonUp(1, Input.ArcadeButtons.A2)
+                || Input.GetButtonUp(1, Input.ArcadeButtons.A3)
+                || Input.GetButtonUp(1, Input.ArcadeButtons.B4)
+                || Input.GetButtonUp(1, Input.ArcadeButtons.B1)
+                || Input.GetButtonUp(1, Input.ArcadeButtons.B2)
+                || Input.GetButtonUp(1, Input.ArcadeButtons.B3)
+                || Input.GetButtonUp(1, Input.ArcadeButtons.B4)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.A1)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.A2)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.A3)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.B4)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.B1)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.B2)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.B3)
+                || Input.GetButtonUp(2, Input.ArcadeButtons.B4);
+        }
+
+        private bool ButtonPressed()
+        {
+            //Called when any button is pressed
+            return Keyboard.GetState().IsKeyDown(Keys.Space)
+                || Input.GetButton(1, Input.ArcadeButtons.A1)
+                || Input.GetButton(1, Input.ArcadeButtons.A2)
+                || Input.GetButton(1, Input.ArcadeButtons.A3)
+                || Input.GetButton(1, Input.ArcadeButtons.B4)
+                || Input.GetButton(1, Input.ArcadeButtons.B1)
+                || Input.GetButton(1, Input.ArcadeButtons.B2)
+                || Input.GetButton(1, Input.ArcadeButtons.B3)
+                || Input.GetButton(1, Input.ArcadeButtons.B4)
+                || Input.GetButton(2, Input.ArcadeButtons.A1)
+                || Input.GetButton(2, Input.ArcadeButtons.A2)
+                || Input.GetButton(2, Input.ArcadeButtons.A3)
+                || Input.GetButton(2, Input.ArcadeButtons.B4)
+                || Input.GetButton(2, Input.ArcadeButtons.B1)
+                || Input.GetButton(2, Input.ArcadeButtons.B2)
+                || Input.GetButton(2, Input.ArcadeButtons.B3)
+                || Input.GetButton(2, Input.ArcadeButtons.B4);
+        }
+
+        private Vector2 GetStickDirection()
+        {
+            Vector2 direction = Vector2.Zero;
+#if DEBUG
+            if (Keyboard.GetState().IsKeyDown(Keys.W)) direction.Y -= 1;
+            if (Keyboard.GetState().IsKeyDown(Keys.S)) direction.Y += 1;
+            if (Keyboard.GetState().IsKeyDown(Keys.D)) direction.X += 1;
+            if (Keyboard.GetState().IsKeyDown(Keys.A)) direction.X -= 1;
+#else
+            direction = Input.GetStick(1);
+            direction = new Vector2(direction.X, -direction.Y);
+#endif
+            return direction;
+        }
+
+        private bool StickDownJust()
+        {
+            //Called when any button is pressed
+            return (_pk.IsKeyUp(Keys.S) && Keyboard.GetState().IsKeyDown(Keys.S))
+                || Input.GetButtonDown(1, Input.ArcadeButtons.StickDown);
+        }
+
+        private bool StickUpJust()
+        {
+            //Called when any button is pressed
+            return (_pk.IsKeyUp(Keys.W) && Keyboard.GetState().IsKeyDown(Keys.W))
+                || Input.GetButtonDown(1, Input.ArcadeButtons.StickUp);
+        }
+
     }
 }

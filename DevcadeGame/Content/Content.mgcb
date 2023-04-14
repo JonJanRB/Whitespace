@@ -16,12 +16,22 @@
 #begin Comfortaa-Light.ttf
 /copy:Comfortaa-Light.ttf
 
+#begin Comfortaa-SemiBold.ttf
+/copy:Comfortaa-SemiBold.ttf
+
 #begin Comfortaa200.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /build:Comfortaa200.spritefont
+
+#begin Comfortaa200Bold.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Comfortaa200Bold.spritefont
 
 #begin Filled Circle.png
 /importer:TextureImporter
@@ -47,15 +57,51 @@
 /processorParam:TextureFormat=Color
 /build:Filled Triangle.png
 
-#begin Test_quotemusic.wav
-/importer:WavImporter
-/processor:SongProcessor
-/processorParam:Quality=Best
-/build:Test_quotemusic.wav
-
-#begin Whitespace_MenuSelect.wav
+#begin Sound/Back.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
-/build:Whitespace_MenuSelect.wav
+/build:Sound/Back.wav
+
+#begin Sound/Death.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sound/Death.wav
+
+#begin Sound/Fling.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sound/Fling.wav
+
+#begin Sound/Orb.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sound/Orb.wav
+
+#begin Sound/Select.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sound/Select.wav
+
+#begin Sound/Spike.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sound/Spike.wav
+
+#begin Sound/Swipe.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sound/Swipe.wav
+
+#begin Sound/Time.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sound/Time.wav
 

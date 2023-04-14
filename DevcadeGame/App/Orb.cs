@@ -79,7 +79,7 @@ namespace Whitespace.App
 
         public void Destroy(Vector2 velocity)
         {
-
+            SoundManager.OrbDestroy.Play();
             _destroyedParticles.Position = Position;
             foreach(var emitter in _destroyedParticles.Emitters)
             {
