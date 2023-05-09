@@ -36,7 +36,7 @@ namespace Whitespace.App.Util
         {
             //Capacity of objects on screen at once
             Orbs = new Orb[10];
-            Spikes = new Spike[5];
+            Spikes = new Spike[7];
 
             
 
@@ -67,7 +67,7 @@ namespace Whitespace.App.Util
                 if (player.Intersects(orb.Collider) && orb.Enabled)
                 {
                     orb.Destroy(player.Velocity);
-                    player.Flings += 2;
+                    player.Flings++;
                     player.Velocity =
                         new Vector2(-player.Velocity.X,
                         -MathF.Abs(player.Velocity.Y) + -1000f);

@@ -84,11 +84,15 @@ namespace Whitespace.App
             {
                 "(Press any button to go back)",
                 "---",
+                "Created by Jonathan Jan",
                 "Sounds made using BFXR",
                 "Textures made in Google Drawings",
                 "Font: Comfortaa by Johan Aakerlund",
                 "Made using MonoGame and",
-                "MonoGame.Extended"
+                "MonoGame.Extended",
+                "---",
+                "Made in under a week for the 2023 Devcade Jam",
+                "Updated 5/9/2023 with balancing changes"
             };
             _instructions = new()
             {
@@ -176,7 +180,7 @@ namespace Whitespace.App
                     sb.DrawString(
                         _boldFont,
                         entry,
-                        _position + 2 * _subPos + new Vector2(0f, i * _lineSpacing * 0.5f + 1000f),
+                        _position + 1.7f * _subPos + new Vector2(0f, i * _lineSpacing * 0.5f + 1000f),
                         Color.Black,
                         0f,
                         origin,
@@ -197,7 +201,7 @@ namespace Whitespace.App
                     sb.DrawString(
                         _boldFont,
                         entry,
-                        _position + 1.5f * _subPos + new Vector2(0f, i * _lineSpacing * 0.5f + 1000f),
+                        _position + 1.6f * _subPos + new Vector2(0f, i * _lineSpacing * 0.5f + 1000f),
                         Color.Black,
                         0f,
                         origin,

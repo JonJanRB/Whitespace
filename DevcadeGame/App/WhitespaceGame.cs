@@ -403,18 +403,20 @@ namespace Whitespace.App
                     }
                     if (ButtonJustPressed())
                     {
-                        SoundManager.MenuSelect.Play();
                         switch (_mainMenu.Index)
                         {
                             case 0://Play
                                 ResetGame(gameTime);
                                 _gameState = GameState.Playing;
+                                SoundManager.TimeStop.Play();
                                 break;
                             case 1://How to play
                                 _mainMenu.GoToTutorial();
+                                SoundManager.MenuSelect.Play();
                                 break;
                             case 2://Credits
                                 _mainMenu.GoToCredits();
+                                SoundManager.MenuSelect.Play();
                                 break;
                             case 3://Quit
                                 Exit();
