@@ -69,7 +69,8 @@ namespace Whitespace.App
         private Vector2 _subPos;
         private float _lineSpacing;
 
-        public string Title { get; set; } = "";
+        public string ScoreLabel { get; set; } = "";
+        public string ScoreTitle { get; set; } = "";
 
         public Menu(Vector2 top, SpriteFont lightFont, SpriteFont boldFont, float lineSpacing, Vector2 subPosition)
         {
@@ -156,16 +157,30 @@ namespace Whitespace.App
                     0f);
             }
 
-            Vector2 scoreOrigin = _lightFont.MeasureString(Title) * 0.5f;
+            Vector2 scoreTitleOrigin = _lightFont.MeasureString(ScoreTitle) * 0.5f;
 
             sb.DrawString(
                 _boldFont,
-                Title,
-                _position + new Vector2(0f, 5 * _lineSpacing + 1000f),
+                ScoreTitle,
+                _position + new Vector2(0f, 5 * _lineSpacing + 600f),
                 Color.Green,
                 0f,
-                scoreOrigin,
+                scoreTitleOrigin,
                 0.4f,
+                SpriteEffects.None,
+                0f);
+
+
+            Vector2 scoreOrigin = _lightFont.MeasureString(ScoreLabel) * 0.5f;
+
+            sb.DrawString(
+                _boldFont,
+                ScoreLabel,
+                _position + new Vector2(0f, 5 * _lineSpacing + 1000f),
+                Color.LawnGreen,
+                0f,
+                scoreOrigin,
+                0.8f,
                 SpriteEffects.None,
                 0f);
 

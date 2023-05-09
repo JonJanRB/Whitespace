@@ -272,8 +272,12 @@ namespace Whitespace.App
                     {
                         if (!float.IsNaN(_player.TargetDirection))
                         {
+                            if(_newGame)
+                            {
+                                _newGame = false;
+                                _beginTime = gameTime.TotalGameTime.TotalSeconds;
+                            }
                             _player.TargetDirection = _player.Direction;
-                            _newGame = false;
                         }
                     }
                     
@@ -406,7 +410,7 @@ namespace Whitespace.App
                         switch (_mainMenu.Index)
                         {
                             case 0://Play
-                                ResetGame(gameTime);
+                                ResetGame();
                                 _gameState = GameState.Playing;
                                 SoundManager.TimeStop.Play();
                                 break;
@@ -556,7 +560,7 @@ namespace Whitespace.App
                 || Input.GetButtonDown(1, Input.ArcadeButtons.StickUp);
         }
 
-        private void ResetGame(GameTime gt)
+        private void ResetGame()
         {
             _player.Position = Vector2.Zero;
             _player.IsAlive = true;
@@ -569,7 +573,6 @@ namespace Whitespace.App
             _objMan.Reset(_cam.BoundingRectangle);
             _wave.Reset();
             _newGame = true;
-            _beginTime = gt.TotalGameTime.TotalSeconds;
         }
 
         private void TransitionToMenu(GameTime gt)
@@ -578,7 +581,12 @@ namespace Whitespace.App
             _cam.Zoom = _defaultZoom;
             _mainMenu.TransitionToMenu();
             _gameState = GameState.Menu;
-            _mainMenu.Title = "You survived: " + (gt.TotalGameTime.TotalSeconds - _beginTime).ToString(".00") + " seconds";
+            _mainMenu.ScoreTitle = "You Survived:";
+            double score = gt.TotalGameTime.TotalSeconds - _beginTime;
+            if(score < 1000000d)
+                _mainMenu.ScoreLabel = score.ToString("#####0.00") + " seconds";
+            else
+                _mainMenu.ScoreLabel = "A really long time";//around 11.5 days
         }
     }
 }
