@@ -85,7 +85,7 @@ namespace Whitespace.App
             {
                 "(Press any button to go back)",
                 "---",
-                "Created by Jonathan Jan",
+                "Created by ReBuff",
                 "Sounds made using BFXR",
                 "Textures made in Google Drawings",
                 "Font: Comfortaa by Johan Aakerlund",
@@ -97,12 +97,12 @@ namespace Whitespace.App
             };
             _instructions = new()
             {
-                "(Press any button to go back)",
+                "(Press [SPACE] to go back)",
                 "---",
-                "Press and hold any button to stop time",
-                "Aim with the stick to where you want to fling",
+                "Press and hold [SPACE] to stop time",
+                "Aim with [WASD] to where you want to fling",
                 "",
-                "Let go of the button to fling",
+                "Let go of [SPACE] to fling",
                 "yourself in that direction",
                 "",
                 "Smash green orbs to gain flings",

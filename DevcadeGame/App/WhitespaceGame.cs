@@ -91,17 +91,10 @@ namespace Whitespace.App
         {
             // Sets up the input library
             Input.Initialize();
-            #region Set to Devcade Resolution
-#if DEBUG
+
             _graphics.PreferredBackBufferWidth = 420;
             _graphics.PreferredBackBufferHeight = 980;
             _graphics.ApplyChanges();
-#else
-			_graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
-			_graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
-			_graphics.ApplyChanges();
-#endif
-            #endregion
             ////
 
             //Set up singeltons
@@ -534,15 +527,10 @@ namespace Whitespace.App
         private Vector2 GetStickDirection()
         {
             Vector2 direction = Vector2.Zero;
-#if DEBUG
-            if (Keyboard.GetState().IsKeyDown(Keys.W)) direction.Y -= 1;
-            if (Keyboard.GetState().IsKeyDown(Keys.S)) direction.Y += 1;
-            if (Keyboard.GetState().IsKeyDown(Keys.D)) direction.X += 1;
-            if (Keyboard.GetState().IsKeyDown(Keys.A)) direction.X -= 1;
-#else
-            direction = Input.GetStick(1);
-            direction = new Vector2(direction.X, -direction.Y);
-#endif
+            if (Keyboard.GetState().IsKeyDown(Keys.W)) direction.Y -= 1f;
+            if (Keyboard.GetState().IsKeyDown(Keys.S)) direction.Y += 1f;
+            if (Keyboard.GetState().IsKeyDown(Keys.D)) direction.X += 1f;
+            if (Keyboard.GetState().IsKeyDown(Keys.A)) direction.X -= 1f;
             return direction;
         }
 
